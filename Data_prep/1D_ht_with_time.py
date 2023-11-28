@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import csv
 
 # Parameters
-alpha = 0.01  # Thermal diffusivity
+alpha = 0.08 # Thermal diffusivity
 length = 1.0  # Length of the rod
 time_end = 2.0  # End time
 num_points = 100  # Number of spatial points
