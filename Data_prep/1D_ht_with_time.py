@@ -3,11 +3,15 @@ import matplotlib.pyplot as plt
 import csv
 
 # Parameters
+<<<<<<< HEAD
 alpha = 0.08 # Thermal diffusivity
+=======
+alpha = 0.1  # Thermal diffusivity
+>>>>>>> aff37fd444a9d7b7bcf1ea7245a2be049fec1fed
 length = 1.0  # Length of the rod
-time_end = 2.0  # End time
+time_end = 1.0  # End time
 num_points = 100  # Number of spatial points
-num_steps = 1000  # Number of time steps
+num_steps = 1000 # Number of time steps
 
 # Spatial and time step sizes
 dx = length / (num_points - 1)
