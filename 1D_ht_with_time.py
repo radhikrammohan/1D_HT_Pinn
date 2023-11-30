@@ -1,17 +1,15 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import csv
+import time
 
+start_time = time.time()
 # Parameters
-<<<<<<< HEAD
-alpha = 0.08 # Thermal diffusivity
-=======
-alpha = 0.1  # Thermal diffusivity
->>>>>>> aff37fd444a9d7b7bcf1ea7245a2be049fec1fed
+alpha = 0.01  # Thermal diffusivity
 length = 1.0  # Length of the rod
-time_end = 1.0  # End time
+time_end = 2.0  # End time
 num_points = 100  # Number of spatial points
-num_steps = 1000 # Number of time steps
+num_steps = 1000  # Number of time steps
 
 # Spatial and time step sizes
 dx = length / (num_points - 1)
@@ -34,12 +32,14 @@ temperature_history = [temperature.copy()]
 # Finite difference method
 for n in range(1, num_steps + 1):
     # Compute new temperature values using finite difference
-    temperature[1:-1] = (
-        temperature[1:-1]
-        + alpha * dt / dx**2 * (temperature[2:] - 2 * temperature[1:-1] + temperature[:-2])
-    )
+    temperature[1:-1] = ( temperature[1:-1] + alpha * dt / dx**2 * (temperature[2:] - 2 * temperature[1:-1] + temperature[:-2]) )
     # Store the temperature at this time step
     temperature_history.append(temperature.copy())
+
+end_time = time.time()
+
+total_time = end_time - start_time
+print(f'Total time taken for execution: {total_time:.2f} seconds')
 
 # Plot the results
 plt.figure(figsize=(10, 6))
@@ -63,3 +63,4 @@ with open(csv_filename, 'w', newline='') as csvfile:
     csv_writer.writerows(np.column_stack((np.linspace(0, length, num_points), *temperature_history)))
 
 print(f'Data saved to {csv_filename}')
+
