@@ -41,7 +41,7 @@ end_time = time.time()
 total_time = end_time - start_time
 print(f'Total time taken for execution: {total_time:.2f} seconds')
 
-# Plot the results
+# Plot the results very well
 plt.figure(figsize=(10, 6))
 
 # Plot spatial variation at different time steps
