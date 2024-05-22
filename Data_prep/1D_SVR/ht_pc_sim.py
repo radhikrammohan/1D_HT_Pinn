@@ -1,8 +1,9 @@
 import numpy as np
-def sim1d(T_L, T_S,rho_l, rho_s, rho_m, k_l, k_s, k_m, 
-         cp_l, cp_s, cp_m, 
-         L_fusion, 
-         num_points, 
+
+def sim1d(T_L, T_S,rho_l, rho_s, rho_m, k_l, k_s, k_m,\
+         cp_l, cp_s, cp_m, \
+         L_fusion, \
+         num_points, \
          time_end, bc_r, bc_l, temp_init):
     
 
@@ -22,14 +23,14 @@ def sim1d(T_L, T_S,rho_l, rho_s, rho_m, k_l, k_s, k_m,
                                   # num_steps = round(time_end/dt)
                                                               
     # Time Discretization  
-    time_end = 5                 # seconds                         
+    #time_end = 5                 # seconds                         
     #num_steps = 10000
     # dt = time_end/num_steps
-    dt = abs(0.5 *(dx**2/np.maximum(alpha_l, alpha_s, alpha_m)))
+    dt = abs(0.5 *(dx**2/(max(alpha_l, alpha_s, alpha_m))))
     
     num_steps = round(time_end/dt) +1
     
-    cfl = 0.5 *(dx**2/alpha)
+    
    
     #dt = time_end / num_steps
     time_steps = np.linspace(0, time_end, num_steps + 1)
@@ -84,28 +85,9 @@ def sim1d(T_L, T_S,rho_l, rho_s, rho_m, k_l, k_s, k_m,
 
     # Compute the average phase at the end of the simulation
     final_phase = phi_history[-1]
-    average_phase_end = np.mean(final_phase)
-    return average_phase_end
+    
+    average_solid_fraction = np.mean(final_phase)
+    
+    
 
-# Example usage
-average_phase_end = sim1d(
-    T_L=866.0,
-    T_S=811.0,
-    rho_l=2760,
-    rho_s=2760 * 1.5,
-    rho_m=2760,
-    k_l=1090 * 1.5,
-    k_s=1090 * 1.5,
-    k_m=1090 * 1.5,
-    cp_l=963,
-    cp_s=963,
-    cp_m=963,
-    L_fusion=389e3,
-    num_points=50,
-    time_end=5,
-    bc_r=313.0,
-    bc_l=313.0,
-    temp_init=870.0
-)
-
-print("Average phase at time_end:", average_phase_end)
+    return average_solid_fraction
