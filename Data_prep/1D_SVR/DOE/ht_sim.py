@@ -1,28 +1,34 @@
 import numpy as np
 
-def sim1d(T_L, T_S,rho_l, rho_s, rho_m, k_l, k_s, k_m,\
-         cp_l, cp_s, cp_m, \
-         L_fusion, \
-          bc_l, bc_r, temp_init):
+def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s, bc_l, bc_r, L_fusion, temp_init):
     
 
     # Geometry
     length = 1e-2                 # Length of the rod
+
+    T_L = 889.0                  # Liquidus temperature
+    T_S = T_L-338.3                    # Solidus temperature
+    rho_m = (rho_l +rho_s) /2 # Average density
+
+    k_m = (k_l + k_s) / 2 # Average thermal conductivity    
+    cp_m = (cp_l + cp_s) / 2 # Average heat capacity
 
     alpha_l = k_l / (rho_l * cp_l)  # Thermal diffusivity of the liquid
     alpha_s = k_s / (rho_s * cp_s)  # Thermal diffusivity of the solid
     alpha_m = k_m / (rho_m * cp_m)  # Thermal diffusivity of the solid
     # Spatial discretization
 
+
+
     num_points = 50                  # Number of spatial points
     dx = length / (num_points - 1)
-    print('dx is',dx)
+    
                                    #dt = time_end/num_steps
     #num_steps = 200000               # Number of time steps
                                   # num_steps = round(time_end/dt)
                                                               
     # Time Discretization  
-    #time_end = 5                 # seconds                         
+    time_end = 5                 # seconds                         
     #num_steps = 10000
     # dt = time_end/num_steps
     dt = abs(0.5 *(dx**2/(max(alpha_l, alpha_s, alpha_m))))
@@ -34,9 +40,7 @@ def sim1d(T_L, T_S,rho_l, rho_s, rho_m, k_l, k_s, k_m,\
     #dt = time_end / num_steps
     time_steps = np.linspace(0, time_end, num_steps + 1)
        
-    
         
-    
 
 
     # Initial temperature and phase fields
@@ -88,5 +92,4 @@ def sim1d(T_L, T_S,rho_l, rho_s, rho_m, k_l, k_s, k_m,\
     average_solid_fraction = np.mean(final_phase)
     
     
-
     return average_solid_fraction
