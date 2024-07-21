@@ -138,20 +138,44 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init):
             # print("Simulation complete @ time: ", current_time)
             break
         
-    # temperature_history_1 = np.array(temperature_history)
-    # print(temperature_history_1.shape)
-    # Plot temperature history for debugging
+         # Check the new shape after transposing
+      
+    temperature_history_1 = np.array(temperature_history)
+    phi_history_1 = np.array(phi_history)
+    # Create a meshgrid for space and time coordinates
+    space_coord, time_coord = np.meshgrid(np.arange(temperature_history_1.shape[1]), np.arange(temperature_history_1.shape[0]))
 
-    # time_ss= np.linspace(0, time_end, len(midpoint_temperature_history))
-    # # print(time_ss.shape)
-    # plt.figure(figsize=(10, 6))
-    # plt.plot(time_ss, midpoint_temperature_history, label='Midpoint Temperature')
-    # plt.axhline(y=T_L, color='r', linestyle='--', label='Liquidus Temperature')
-    # plt.axhline(y=T_S, color='g', linestyle='--', label='Solidus Temperature')
-    # plt.xlabel('Time(s)')
-    # plt.ylabel('Temperature (K)')
-    # plt.title('Temperature Distribution Over Time')
-    # plt.legend()
-    # plt.show()
+    time_coord = time_coord * dt
+    # Create a figure with two subplots
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
 
-    return current_time 
+    # Plot the temperature history on the left subplot
+    im1 = ax1.pcolormesh(space_coord, time_coord, temperature_history_1, cmap='viridis')
+    ax1.set_xlabel('Space Coordinate')
+    ax1.set_ylabel('Time')
+    ax1.set_title('Temperature Variation Over Time')
+    fig.colorbar(im1, ax=ax1, label='Temperature')
+
+    # Plot the phase history on the right subplot
+    im2 = ax2.pcolormesh(space_coord, time_coord, phi_history_1, cmap='viridis')
+    ax2.set_xlabel('Space Coordinate')
+    ax2.set_ylabel('Time')
+    ax2.set_title('Phase Variation Over Time')
+    fig.colorbar(im2, ax=ax2, label='Phase')
+    plt.tight_layout()
+    plt.show()
+
+    # # plot the main
+    # fig, ax = plt.subplots(figsize=(14, 6))
+    # im = ax.pcolormesh(space_coord, time_coord, Niyama, cmap='viridis')
+    # ax.set_xlabel('Space Coordinate')
+    # ax.set_ylabel('Time')
+    # ax.set_title('Main Variation Over Time')
+    # fig.colorbar(im, ax=ax, label='Main')
+    # plt.tight_layout()
+    plt.show() 
+    print("Simulation complete @ time: ", current_time)
+    return current_time, temperature_history, phi_history
+
+
+
