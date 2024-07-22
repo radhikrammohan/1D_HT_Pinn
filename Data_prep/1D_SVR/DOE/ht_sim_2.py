@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init):
+def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc):
     
 
     # Geometry
@@ -96,7 +96,7 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init):
     # midpoint_temperature_history = [temperature[midpoint_index]]
     
     while current_time < time_end:  # time loop
-        htc = 10.0
+        htc = htc
         q1 = htc * (temp_initf[0] - t_surr)
         temperature[0] = temp_initf[0] + (alpha_l * step_coeff * ((2.0*temp_initf[1]) - (2.0 * temp_initf[0])-(2.0*dx*(q1))))  # Update boundary condition temperature
         q2 = htc*(temp_initf[-1]-t_surr)                   # Heat flux at the right boundary
@@ -145,25 +145,25 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init):
     # Create a meshgrid for space and time coordinates
     space_coord, time_coord = np.meshgrid(np.arange(temperature_history_1.shape[1]), np.arange(temperature_history_1.shape[0]))
 
-    time_coord = time_coord * dt
-    # Create a figure with two subplots
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
+    # time_coord = time_coord * dt
+    # # Create a figure with two subplots
+    # fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
 
-    # Plot the temperature history on the left subplot
-    im1 = ax1.pcolormesh(space_coord, time_coord, temperature_history_1, cmap='viridis')
-    ax1.set_xlabel('Space Coordinate')
-    ax1.set_ylabel('Time')
-    ax1.set_title('Temperature Variation Over Time')
-    fig.colorbar(im1, ax=ax1, label='Temperature')
+    # # Plot the temperature history on the left subplot
+    # im1 = ax1.pcolormesh(space_coord, time_coord, temperature_history_1, cmap='viridis')
+    # ax1.set_xlabel('Space Coordinate')
+    # ax1.set_ylabel('Time')
+    # ax1.set_title('Temperature Variation Over Time')
+    # fig.colorbar(im1, ax=ax1, label='Temperature')
 
-    # Plot the phase history on the right subplot
-    im2 = ax2.pcolormesh(space_coord, time_coord, phi_history_1, cmap='viridis')
-    ax2.set_xlabel('Space Coordinate')
-    ax2.set_ylabel('Time')
-    ax2.set_title('Phase Variation Over Time')
-    fig.colorbar(im2, ax=ax2, label='Phase')
-    plt.tight_layout()
-    plt.show()
+    # # Plot the phase history on the right subplot
+    # im2 = ax2.pcolormesh(space_coord, time_coord, phi_history_1, cmap='viridis')
+    # ax2.set_xlabel('Space Coordinate')
+    # ax2.set_ylabel('Time')
+    # ax2.set_title('Phase Variation Over Time')
+    # fig.colorbar(im2, ax=ax2, label='Phase')
+    # plt.tight_layout()
+    # plt.show()
 
     # # plot the main
     # fig, ax = plt.subplots(figsize=(14, 6))
