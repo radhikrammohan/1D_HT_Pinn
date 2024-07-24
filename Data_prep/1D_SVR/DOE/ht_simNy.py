@@ -178,17 +178,22 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc):
 
     # k2 = np.divide(grad_t_x, grad_t_t_power, out=np.zeros_like(grad_t_x, dtype=float), where=grad_t_t_power!=0)
     k2 = np.zeros((num_steps+1,num_points))
+    k3 = np.zeros((num_steps+1,num_points))
     for i in range(num_steps+1):
         for j in range(num_points):
             if grad_t_x[i,j] == 0:
                 k2[i,j] = 0
+                k3[i,j] = 0
             if grad_t_t[i,j]== 0:
                 k2[i,j] = 0
+                k3[i,j] = 0
             else:
                 k2[i,j] = ((grad_t_x[i,j]))/ ((grad_t_t[i,j]))**(5/6)
+                k3[i,j] = (grad_t_x[i,j])/ (grad_t_t[i,j])
         
     # k2 = grad_t_x/((grad_t_t)**(5/6))
     # print(k2)
+    Ny_s= k3
     Dim_ny = C_lambda * k1 * k2
     # print(Dim_ny)
 
@@ -205,7 +210,8 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc):
     Ny_time = 0.80*current_time                                     # Time at which Niyama number is calculated 
 
     Ny_index = int(Ny_time/dt)                                      # Index of the time at which Niyama number is calculated
-    Cr_Ny = np.min(Dim_ny[Ny_index, :])                                # Minimum Niyama number at the time of interest
+    Cr_Ny = np.min(Dim_ny[Ny_index, :])
+    Cr_Nys = np.min(Ny_s[Ny_index,:])                                # Minimum Niyama number at the time of interest
     
     # Create a meshgrid for space and time coordinates
     # space_coord, time_coord = np.meshgrid(np.arange(temperature_history_1.shape[1]), np.arange(temperature_history_1.shape[0]))
@@ -240,7 +246,7 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc):
     # plt.tight_layout()
     # plt.show() 
     # print("Simulation complete @ time: ", current_time)
-    return current_time, temperature_history, phi_history, Cr_Ny
+    return current_time, temperature_history, phi_history, Cr_Ny,Cr_Nys
 
 
 
