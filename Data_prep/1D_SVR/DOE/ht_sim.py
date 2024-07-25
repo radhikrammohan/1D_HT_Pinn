@@ -96,41 +96,41 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s, bc_l, bc_r, L_fusion, temp_init):
 
 
     # Check the new shape after transposing
-    #print("Transposed Temperature History Shape:", temperature_history.shape)
-    #print("Transposed Phi History Shape:", phi_history.shape)
+    print("Transposed Temperature History Shape:", temperature_history.shape)
+    print("Transposed Phi History Shape:", phi_history.shape)
 
-    # # Create a meshgrid for space and time coordinates
-    # space_coord, time_coord = np.meshgrid(np.arange(temperature_history.shape[1]), np.arange(temperature_history.shape[0]))
+    # Create a meshgrid for space and time coordinates
+    space_coord, time_coord = np.meshgrid(np.arange(temperature_history.shape[1]), np.arange(temperature_history.shape[0]))
 
-    # time_coord = time_coord * dt
-    # # Create a figure with two subplots
-    # fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
+    time_coord = time_coord * dt
+    # Create a figure with two subplots
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
 
-    # # Plot the temperature history on the left subplot
-    # im1 = ax1.pcolormesh(space_coord, time_coord, temperature_history, cmap='viridis')
-    # ax1.set_xlabel('Space Coordinate')
-    # ax1.set_ylabel('Time')
-    # ax1.set_title('Temperature Variation Over Time')
-    # fig.colorbar(im1, ax=ax1, label='Temperature')
+    # Plot the temperature history on the left subplot
+    im1 = ax1.pcolormesh(space_coord, time_coord, temperature_history, cmap='viridis')
+    ax1.set_xlabel('Space Coordinate')
+    ax1.set_ylabel('Time')
+    ax1.set_title('Temperature Variation Over Time')
+    fig.colorbar(im1, ax=ax1, label='Temperature')
 
-    # # Plot the phase history on the right subplot
-    # im2 = ax2.pcolormesh(space_coord, time_coord, phi_history, cmap='viridis')
-    # ax2.set_xlabel('Space Coordinate')
-    # ax2.set_ylabel('Time')
-    # ax2.set_title('Phase Variation Over Time')
-    # fig.colorbar(im2, ax=ax2, label='Phase')
-    # plt.tight_layout()
-    # plt.show()
+    # Plot the phase history on the right subplot
+    im2 = ax2.pcolormesh(space_coord, time_coord, phi_history, cmap='viridis')
+    ax2.set_xlabel('Space Coordinate')
+    ax2.set_ylabel('Time')
+    ax2.set_title('Phase Variation Over Time')
+    fig.colorbar(im2, ax=ax2, label='Phase')
+    plt.tight_layout()
+    plt.show()
 
-    #plot the main
-    #fig, ax = plt.subplots(figsize=(14, 6))
-    #im = ax.pcolormesh(space_coord, time_coord, Niyama, cmap='viridis')
-    #ax.set_xlabel('Space Coordinate')
-    #ax.set_ylabel('Time')
-    #ax.set_title('Main Variation Over Time')
-    #fig.colorbar(im, ax=ax, label='Main')
-    #plt.tight_layout()
-    #plt.show()
+    # plot the main
+    fig, ax = plt.subplots(figsize=(14, 6))
+    im = ax.pcolormesh(space_coord, time_coord, Niyama, cmap='viridis')
+    ax.set_xlabel('Space Coordinate')
+    ax.set_ylabel('Time')
+    ax.set_title('Main Variation Over Time')
+    fig.colorbar(im, ax=ax, label='Main')
+    plt.tight_layout()
+    plt.show()
     
     
 
