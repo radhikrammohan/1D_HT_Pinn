@@ -207,7 +207,7 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc):
     # plt.show()**
     
     
-    Ny_time = 0.80*current_time                                     # Time at which Niyama number is calculated 
+    Ny_time = 0.90*current_time                                     # Time at which Niyama number is calculated 
 
     Ny_index = int(Ny_time/dt)                                      # Index of the time at which Niyama number is calculated
     Cr_Ny = np.min(Dim_ny[Ny_index, :])
