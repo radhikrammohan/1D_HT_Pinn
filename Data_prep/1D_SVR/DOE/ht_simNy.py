@@ -150,7 +150,10 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,h
       
     temperature_history_1 = np.array(temperature_history)                       # Convert temperature history to numpy array
     phi_history_1 = np.array(phi_history)                                      # Convert phase history to numpy array
+    aa = np.array(temperature_history)
+    temp_hist_l = aa[:,1:-1]
 
+    t_dim,x_dim  = temp_hist_l.shape
     # Niyama Calcualtion
 
     # print(temperature_history_1.shape)
@@ -160,8 +163,8 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,h
     # print(grad_t_x[100,:])
     grad_t_t = np.absolute(np.gradient(temperature_history_1,dt,axis=0))       # Gradient of temperature with respect to time
     # print(grad_t_t[100,:])
-
-    Ny = np.divide(grad_t_x, grad_t_t, out=np.zeros_like(grad_t_x, dtype=float), where=grad_t_t!=0)         # Niyama number
+    sq_grad_t_t = np.square(grad_t_t)                                         # Square of the gradient of temperature with respect to space
+    Ny = np.divide(grad_t_x, sq_grad_t_t, out=np.zeros_like(grad_t_x, dtype=float), where=sq_grad_t_t!=0)         # Niyama number
     # print(Ny)
 
     C_lambda = 40.0e-06                                                                 # C Lambda for Niyama number calculation
@@ -189,8 +192,8 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,h
                 k2[i,j] = 0
                 k3[i,j] = 0
             else:
-                k2[i,j] = ((grad_t_x[i,j]))/ ((grad_t_t[i,j]))**(5/6)
-                k3[i,j] = (grad_t_x[i,j])/ (grad_t_t[i,j])
+                k2[i,j] = ((grad_t_x[i,j]))/ (((grad_t_t[i,j]))**(5/6))
+                k3[i,j] = (grad_t_x[i,j])/ ((grad_t_t[i,j])**(1/2))
         
     # k2 = grad_t_x/((grad_t_t)**(5/6))
     # print(k2)
@@ -222,14 +225,15 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,h
     for i in range (t_dim):
         for j in range(x_dim):
             if (temp_hist_l[i,j]- threshold) < tolerance:
-            indices.append((i,j))
+                indices.append((i,j))
 
-    print(Dim_ny.shape)
+    # print(Dim_ny.shape)
     Niyama_pct = [Dim_ny[i,j] for i,j in indices]
     Niyama_array = np.array(Niyama_pct)
     Lowest_Niyama = np.min(Niyama_array)
+    Avg_Niyama = np.mean(Niyama_array)
 
-    return current_time, temperature_history, phi_history, Cr_Ny,Cr_Nys, Lowest_Niyama
+    return current_time, temperature_history, phi_history, Cr_Ny,Cr_Nys, Lowest_Niyama, Avg_Niyama
 
 
 

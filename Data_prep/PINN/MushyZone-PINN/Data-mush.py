@@ -1,16 +1,4 @@
-# %% [markdown]
-# # 1D Three Phase Simulation of Alloys and PINN model development 
-# 
 
-# %% [markdown]
-# This notebook contains the simulation of 1D Phase change of aluminium alloy. There will be three phases (solid,liquid and mushy).   
-# 
-# The approach used is finite difference method and the physics involved in heat conduction.
-
-# %% [markdown]
-# ## Import Libraries
-
-# %%
 import sys
 import math
 import numpy as np
@@ -27,34 +15,10 @@ from sklearn.preprocessing import StandardScaler
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset
+import torch.nn.init as init
+from torch.utils.tensorboard import SummaryWriter
 
 
-# %% [markdown]
-# ## Simulation
-
-# %% [markdown]
-# ### Define the constants and inital geometric domain
-
-# %% [markdown]
-# 
-# 
-# Material :- AL 380
-# 
-# | Sr.No | Properties  | Symbol | Value  | Unit |Range(source) |
-# |:---:|:---:|:---:|:---:|:---:|:--:|
-# | 1  | Liquidus Density | $\rho_{l}$  | 2300 | $kg/m^3$  |  2200-2400 (ASM handbook) |
-# |  2 |  Solidus Density  |  $\rho_{s}$  | 2500  |  $kg/m^3$  | 2400-2600 (ASM handbook) |
-# |  3 |  Mushy Desnity |  $\rho_{m}$  |  2400 | $kg/m^3$   |Increase linearly from liquid to solid (ASM handbook) |
-# |  4 |  Liquidus Thermal Conductivity| $k_l$  |  70 | $W/m-K$  |60-80 (ASM handbook) |
-# |  5 |  Solidus Thermal Conductivity | $k_s$  | 180  |  $W/m-K$ | 150-210(ASM handbook) |
-# |  6 | Mushy Zone Thermal Conductivity | $k_m$  | 125  |  $W/m-K$ |Decrease linearly from liquid to solid (ASM handbook) |
-# |  7 | Liquidus Specific Heat | $c_{pl}$  | 1190  | $J/kg-K$  | 1100 -1200 (ASM handbook)|
-# |  8 | Solidus Specific Heat | $c_{ps}$  |  1100 |  $J/kg-K$  | 1100-1200 (ASM handbook)|
-# |  9 | Mushy Zone Specific Heat |  $c_{pm}$ | 1175 | $J/kg-K$   |decrease lineraly from liquid to solid (ASM handbook)|
-# |  10 | Latent Heat of Fusion | $L_{fusion}$  | 450e3  | $J/kg$ | (400-500)e3 (ASM handbook) |
-# | 11 | Left Boundary Temperature |$BCT_{l}$|623 |$K$| (623-723) Nissan Data |
-# |12 | Right Boundary Temperature | $BCT_{r}$|623 |$K$| (623-723) Nissan Data |
-# |13| Freezing time | |60 |sec|||
 
 # %%
 # Geometry
@@ -106,7 +70,7 @@ print('dx is',dx)
                                                               
 # Time Discretization  
 # 
-time_end = 60        # seconds                         
+time_end = 40        # seconds                         
 
 maxi = max(alpha_s,alpha_l,alpha_m)
 dt = abs(0.5*((dx**2) /maxi)) 
@@ -251,39 +215,6 @@ for m in range(1, num_steps+1):                                                 
 
 
 
-# %% [markdown]
-# ### Plot the Results
-
-# %%
-# # Plot temperature history for debugging
-# temperature_history_1 = np.array(temperature_history)
-# print(temperature_history_1.shape)
-# time_ss= np.linspace(0, time_end, num_steps+1)
-# # print(time_ss.shape)
-# plt.figure(figsize=(10, 6))
-# plt.plot(time_ss, midpoint_temperature_history, label='Midpoint Temperature')
-# plt.axhline(y=T_L, color='r', linestyle='--', label='Liquidus Temperature')
-# plt.axhline(y=T_S, color='g', linestyle='--', label='Solidus Temperature')
-# plt.xlabel('Time(s)')
-# plt.ylabel('Temperature (K)')
-# plt.title('Temperature Distribution Over Time at x = 7.5mm') 
-# plt.legend()
-# plt.show()
-
-# %% [markdown]
-# 
-
-# %%
-# # Plot temperature history for debugging
-# plt.figure(figsize=(10, 6))
-# for i in range(0, num_steps, num_steps // 50):
-#     plt.plot(np.linspace(0, length, num_points+2), temperature_history[i], label=f't={i * dt:.2f} s')
-
-# plt.xlabel('Position (m)')
-# plt.ylabel('Temperature (K)')
-# plt.title('Temperature Distribution Over Time')
-# # plt.legend()
-# plt.show()
 
 # %% [markdown]
 # ### Data into Array
@@ -304,45 +235,7 @@ phi_history = np.array(phi_history)
 
 print(temperature_history.shape)
 
-# # Check the new shape after transposing
-# print("Transposed Temperature History Shape:", temperature_history.shape)
-# print("Transposed Phi History Shape:", phi_history.shape)
 
-# # Create a meshgrid for space and time coordinates
-# space_coord, time_coord = np.meshgrid(np.arange(temperature_history.shape[1]), np.arange(temperature_history.shape[0]))
-
-# time_coord = time_coord * dt 
-# # Create a figure with two subplots
-# fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
-
-# # Plot the temperature history on the left subplot
-# im1 = ax1.pcolormesh(space_coord, time_coord, temperature_history, cmap='viridis')
-# ax1.set_xlabel('Space Coordinate', fontname='Times New Roman', fontsize=16)
-# ax1.set_ylabel('Time',fontname='Times New Roman', fontsize=16)
-# ax1.set_title('Temperature Variation Over Time',fontname='Times New Roman', fontsize=20)
-# fig.colorbar(im1, ax=ax1, label='Temperature')
-
-# # Plot the phase history on the right subplot
-# im2 = ax2.pcolormesh(space_coord, time_coord, phi_history, cmap='viridis')
-# ax2.set_xlabel('Space Coordinate', fontname='Times New Roman', fontsize=18)
-# ax2.set_ylabel('Time',fontname='Times New Roman', fontsize=16)
-# ax2.set_title('Phase Variation Over Time',fontname='Times New Roman', fontsize=20)
-# fig.colorbar(im2, ax=ax2, label='Phase')
-# plt.tight_layout()
-# plt.show()
-
-# #plot the main
-# fig, ax = plt.subplots(figsize=(14, 6))
-# im = ax.pcolormesh(space_coord, time_coord, Dim_ny, cmap='viridis')
-# ax.set_xlabel('Space Coordinate')
-# ax.set_ylabel('Time')
-# ax.set_title('Niyama Variation Over Time')
-# fig.colorbar(im, ax=ax, label='Main')
-# plt.tight_layout()
-# plt.show()
-
-# %% [markdown]
-# ## ML training
 
 # %% [markdown]
 # ### GPU/CPU check
@@ -356,6 +249,9 @@ print('Using device:', device)
 # ### Data preparation
 
 # %%
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+print('Using device:', device)
+
 space = np.linspace(0, length, num_points+2)
 time = np.linspace(0, time_end, num_steps+1)
 
@@ -365,8 +261,8 @@ scaler_time = StandardScaler()
 space_tr = scaler_space.fit_transform(space.reshape(-1,1))
 time_tr = scaler_time.fit_transform(time.reshape(-1,1))
 
-print(space_tr.shape)
-print(time_tr.shape)
+# print(space_tr.shape)
+# print(time_tr.shape)
 
 
 # create mesh grid of space and time
@@ -413,24 +309,18 @@ class TensorDataset(torch.utils.data.Dataset):
         return X, y
 
 
+
 train_dataset = TensorDataset(train_inputs, train_temp_inp) # Create the training dataset
 val_dataset = TensorDataset(val_inputs, val_temp_inp) # Create the validation dataset
 test_dataset = TensorDataset(test_inputs, test_temp_inp) # Create the test dataset
 
-batch_size = 64
+batch_size = 5000
 
 train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True) # Create the training dataloader
 val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True) # Create the validation dataloader
 test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True) # Create the test dataloader
 
 
-
-# %% [markdown]
-# ### Loss functions
-
-# %%
-def loss_fn_data(u_pred, u_true):
-    return nn.MSELoss()(u_pred, u_true)
 
 # %% [markdown]
 # ### NN Architecture Definition
@@ -440,12 +330,20 @@ def loss_fn_data(u_pred, u_true):
 # Define the neural network architecture
 class Mushydata(nn.Module):
     def __init__(self, input_size, hidden_size, output_size): # This is the constructor
+        
         super(Mushydata, self).__init__()
+        
         self.base = nn.Sequential(
             nn.Linear(input_size, hidden_size),
-            nn.SiLU(),
+            nn.ReLU(),
             nn.Linear(hidden_size, hidden_size),
-            nn.SiLU(),
+            nn.ReLU(),
+            nn.Linear(hidden_size, hidden_size),
+            nn.ReLU(),         
+            nn.Linear(hidden_size, hidden_size),
+            nn.ReLU(),
+            nn.Linear(hidden_size, hidden_size),
+            nn.ReLU(),   
             nn.Linear(hidden_size, output_size)
         )
         
@@ -454,7 +352,11 @@ class Mushydata(nn.Module):
         m = self.base(input_features)                                 # Pass through the third layer
         return m                    # Return the output of the network
 
-
+def xavier_init(m):
+    if isinstance(m,nn.Linear):
+        init.xavier_uniform_(m.weight)
+        if m.bias is not None:
+            init.constant_(m.bias,0)
 # features = torch.rand(1, 2)
 # model = HeatPINN(2, 20, 1)
 # output = model(features[:, 0:1], features[:, 1:2])
@@ -469,18 +371,20 @@ class Mushydata(nn.Module):
 
 # %%
 # Hyperparameters
-hidden_size = 128
-learning_rate = 0.08
-epochs = 30000
+hidden_size = 200
+learning_rate = 2e-2
+epochs = 3000
 # alpha = 0.01  # Adjust this value based on your problem
 # boundary_value = 313.0
 # initial_value = init_temp
 # Initialize the model
-model = Mushydata(input_size=2, hidden_size=hidden_size,output_size=1).to(device)
 lambda_l1 = 0.2
+model = Mushydata(input_size=2, hidden_size=hidden_size,output_size=1).to(device)
+
+model.apply(xavier_init)
 
 # Optimizer
-optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=1e-2)
 
 
 
@@ -495,6 +399,17 @@ test_losses = []
 print(f"Datatype of train_loader is {type(train_loader)}")
 
 # %% [markdown]
+# ### Loss functions
+
+# %%
+def loss_fn_data(u_pred, u_true):
+    return nn.MSELoss()(u_pred, u_true)
+
+def l1_regularization(model, lambda_):
+    l1_reg = sum(param.abs().sum() for param in model.parameters())
+    return l1_reg * lambda_
+
+# %% [markdown]
 # ### Training, Validation and Testing Module
 
 # %%
@@ -503,48 +418,53 @@ def training_loop(epochs, model, loss_fn_data, optimizer, train_dataloader, val_
     val_losses = []    # Initialize the list to store the validation losses
 
     for epoch in range(epochs):
-        model.train()                 # Set the model to training mode
-        train_loss = 0                # Initialize the training loss
+        model.train()                                                           # Set the model to training mode
+        train_loss = 0                                                       # Initialize the training loss
 
-        for batch in train_dataloader:              # Loop through the training dataloader
-            inputs, temp_inp= batch                 # Get the inputs and the true values
-            inputs, temp_inp= inputs.to(device), temp_inp.to(device) # Move the inputs and true values to the GPU
-            optimizer.zero_grad()                               # Zero the gradients
+        for batch in train_dataloader:                                             # Loop through the training dataloader
+            inputs, temp_inp= batch                                               # Get the inputs and the true values
+            inputs, temp_inp= inputs.to(device), temp_inp.to(device)             # Move the inputs and true values to the GPU
+            optimizer.zero_grad()                                                       # Zero the gradients
             
             # Forward pass
-            u_pred = model(inputs[:,0].unsqueeze(1), inputs[:,1].unsqueeze(1)).float().to(device) # Get the predictions
+            u_pred = model(inputs[:,0].unsqueeze(1), inputs[:,1].unsqueeze(1)).to(device) # Get the predictions
             
             # Loss calculation
-            data_loss = loss_fn_data(u_pred, temp_inp.float())                                  # Calculate the data loss
-            # l1_regularization_loss = l1_regularization(model, lambda_l1)                  # Calculate the L1 regularization loss
-            loss = data_loss                                     # Calculate the total loss
+            data_loss = loss_fn_data(u_pred, temp_inp)                                  # Calculate the data loss
+            l1_regularization_loss = l1_regularization(model, lambda_l1)                  # Calculate the L1 regularization loss
+            loss = data_loss  + l1_regularization_loss                                                                       # Calculate the total loss
             
             # Backpropagation
-            loss.backward(retain_graph=True)                             # Backpropagate the gradients
+            loss.backward(retain_graph=True)                                                        # Backpropagate the gradients
             
-            optimizer.step()                                                   # Update the weights
+            optimizer.step()                                                                            # Update the weights
             
             train_loss += loss.item()     
                                         # Add the loss to the training set loss
-        train_losses.append(train_loss)                               # Append the training loss to the list of training losses
+            
+        train_losses.append(train_loss)                                                   # Append the training loss to the list of training losses
         
         if epoch % 10 == 0:
-            print(f"Epoch {epoch}, Training-Loss {train_loss}")
+            print(f"Epoch {epoch}, Training-Loss {train_loss:.4e}")
         
         model.eval()
-        val_loss = 0                                                                     # Initialize the validation loss
+        val_loss = 0                                                                                      # Initialize the validation loss
         
         with torch.no_grad():
             for batch in val_dataloader:                                                            # Loop through the validation dataloader
                 inputs, temp_inp= batch                                                        # Get the inputs and the true values
                 inputs, temp_inp= inputs.to(device), temp_inp.to(device)                                     # Move the inputs and true values to the GPU
                 u_pred = model(inputs[:,0].unsqueeze(1), inputs[:,1].unsqueeze(1))                        # Get the predictions
-                data_loss = loss_fn_data(u_pred, temp_inp.float())                                          # Calculate the data loss
+                data_loss = loss_fn_data(u_pred, temp_inp)                                          # Calculate the data loss
                 loss = data_loss                                                                          # Calculate the total loss
                 val_loss += loss.item()                                                                     # Add the loss to the validation set loss
             val_losses.append(val_loss)                                                                 # Append the validation loss to the list of validation losses
-                                                                        # Append the validation loss to the list of validation losses
-    return train_losses, val_losses                                                                    # Return the training and validation losses
+            
+        if epoch % 10 == 0:
+            print(f"Epoch {epoch},Training-Loss {train_loss:.4e}")                                                           
+       
+    return train_losses, val_losses  
+    return train_losses ,val_losses                                                                 # Return the training and validation losses
 
 
 # %%
@@ -557,12 +477,12 @@ def test_loop(epochs, model, loss_fn_data, optimizer, train_dataloader, test_dat
             inputs, temp_inp= batch
             inputs, temp_inp= inputs.to(device), temp_inp.to(device)
             u_pred = model(inputs[:,0].unsqueeze(1), inputs[:,1].unsqueeze(1))
-            data_loss = loss_fn_data(u_pred, temp_inp.float())
+            data_loss = loss_fn_data(u_pred, temp_inp)
             loss = data_loss 
             test_loss += loss.item()
         test_losses.append(test_loss)
     if epochs % 10 == 0:
-        print(f"Epoch {epochs}, Test-Loss {test_loss}")    
+        print(f"Epoch {epochs}, Test-Loss {test_loss:.4e}")    
     return test_losses
 
 # %% [markdown]
@@ -577,8 +497,27 @@ test_losses = test_loop(epochs, model, loss_fn_data, optimizer, train_loader, te
 
    
 
+# writer.close()
+    
+    
 
-    
-    
+# %%
+torch.save({
+    'epoch': epochs,
+    'model_state_dict':model.state_dict(),
+    'optimizer_state_dict':optimizer.state_dict(),
+    'train_losses':train_losses,
+    'val_losses':val_losses    
+},'model_checkpoint.pth')
+
+# %%
+checkpoint = torch.load('model_checkpoint.pth')
+model.load_state_dict(checkpoint['model_state_dict'])
+optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+
+start_epoch =checkpoint['epoch']
+train_losses = checkpoint['train_losses']
+val_losses = checkpoint['val_losses']
+
 
 
