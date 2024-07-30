@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc):
+def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,htc_r):
     
 
     # Geometry
@@ -96,14 +96,15 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc):
     # midpoint_temperature_history = [temperature[midpoint_index]]
     
     while current_time < time_end:  # time loop
-        htc = htc
-        q1 = htc * (temp_initf[0] - t_surr)                     # Heat flux at the left boundary
+        htc_l = htc_l
+        htc_r = htc_r
+        q1 = htc_l * (temp_initf[0] - t_surr)                     # Heat flux at the left boundary
         temperature[0] = temp_initf[0] + \
                         (alpha_l * step_coeff * \
                          ((2.0*temp_initf[1]) - \
                           (2.0 * temp_initf[0])-(2.0*dx*(q1))))  # Update left boundary condition temperature
         
-        q2 = htc*(temp_initf[-1]-t_surr)                          # Heat flux at the right boundary
+        q2 = htc_r *(temp_initf[-1]-t_surr)                          # Heat flux at the right boundary
         temperature[-1] = temp_initf[-1] + \
                          (alpha_l * step_coeff \
                              * ((2.0*temp_initf[-2]) - \
@@ -149,7 +150,10 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc):
       
     temperature_history_1 = np.array(temperature_history)                       # Convert temperature history to numpy array
     phi_history_1 = np.array(phi_history)                                      # Convert phase history to numpy array
+    aa = np.array(temperature_history)
+    temp_hist_l = aa[:,1:-1]
 
+    t_dim,x_dim  = temp_hist_l.shape
     # Niyama Calcualtion
 
     # print(temperature_history_1.shape)
@@ -159,8 +163,8 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc):
     # print(grad_t_x[100,:])
     grad_t_t = np.absolute(np.gradient(temperature_history_1,dt,axis=0))       # Gradient of temperature with respect to time
     # print(grad_t_t[100,:])
-
-    Ny = np.divide(grad_t_x, grad_t_t, out=np.zeros_like(grad_t_x, dtype=float), where=grad_t_t!=0)         # Niyama number
+    sq_grad_t_t = np.square(grad_t_t)                                         # Square of the gradient of temperature with respect to space
+    Ny = np.divide(grad_t_x, sq_grad_t_t, out=np.zeros_like(grad_t_x, dtype=float), where=sq_grad_t_t!=0)         # Niyama number
     # print(Ny)
 
     C_lambda = 40.0e-06                                                                 # C Lambda for Niyama number calculation
@@ -188,8 +192,8 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc):
                 k2[i,j] = 0
                 k3[i,j] = 0
             else:
-                k2[i,j] = ((grad_t_x[i,j]))/ ((grad_t_t[i,j]))**(5/6)
-                k3[i,j] = (grad_t_x[i,j])/ (grad_t_t[i,j])
+                k2[i,j] = ((grad_t_x[i,j]))/ (((grad_t_t[i,j]))**(5/6))
+                k3[i,j] = (grad_t_x[i,j])/ ((grad_t_t[i,j])**(1/2))
         
     # k2 = grad_t_x/((grad_t_t)**(5/6))
     # print(k2)
@@ -213,40 +217,23 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc):
     Cr_Ny = np.min(Dim_ny[Ny_index, :])
     Cr_Nys = np.min(Ny_s[Ny_index,:])                                # Minimum Niyama number at the time of interest
     
-    # Create a meshgrid for space and time coordinates
-    # space_coord, time_coord = np.meshgrid(np.arange(temperature_history_1.shape[1]), np.arange(temperature_history_1.shape[0]))
+    indices =[]
+    threshold = T_S + 0.9*(T_L-T_S)
+    tolerance = 1e-6
+    # print(threshold)
 
-    # time_coord = time_coord * dt
-    # # Create a figure with two subplots
-    # fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
+    for i in range (t_dim):
+        for j in range(x_dim):
+            if (temp_hist_l[i,j]- threshold) < tolerance:
+                indices.append((i,j))
 
-    # # Plot the temperature history on the left subplot
-    # im1 = ax1.pcolormesh(space_coord, time_coord, temperature_history_1, cmap='viridis')
-    # ax1.set_xlabel('Space Coordinate')
-    # ax1.set_ylabel('Time')
-    # ax1.set_title('Temperature Variation Over Time')
-    # fig.colorbar(im1, ax=ax1, label='Temperature')
+    # print(Dim_ny.shape)
+    Niyama_pct = [Dim_ny[i,j] for i,j in indices]
+    Niyama_array = np.array(Niyama_pct)
+    Lowest_Niyama = np.min(Niyama_array)
+    Avg_Niyama = np.mean(Niyama_array)
 
-    # # Plot the phase history on the right subplot
-    # im2 = ax2.pcolormesh(space_coord, time_coord, phi_history_1, cmap='viridis')
-    # ax2.set_xlabel('Space Coordinate')
-    # ax2.set_ylabel('Time')
-    # ax2.set_title('Phase Variation Over Time')
-    # fig.colorbar(im2, ax=ax2, label='Phase')
-    # plt.tight_layout()
-    # plt.show()
-
-    # # plot the main
-    # fig, ax = plt.subplots(figsize=(14, 6))
-    # im = ax.pcolormesh(space_coord, time_coord, Niyama, cmap='viridis')
-    # ax.set_xlabel('Space Coordinate')
-    # ax.set_ylabel('Time')
-    # ax.set_title('Main Variation Over Time')
-    # fig.colorbar(im, ax=ax, label='Main')
-    # plt.tight_layout()
-    # plt.show() 
-    # print("Simulation complete @ time: ", current_time)
-    return current_time, temperature_history, phi_history, Cr_Ny,Cr_Nys
+    return current_time, temperature_history, phi_history, Cr_Ny,Cr_Nys, Lowest_Niyama, Avg_Niyama
 
 
 
