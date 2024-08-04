@@ -151,7 +151,9 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,h
     temperature_history_1 = np.array(temperature_history)                       # Convert temperature history to numpy array
     phi_history_1 = np.array(phi_history)                                      # Convert phase history to numpy array
     aa = np.array(temperature_history)
+    ab = np.array(phi_history)
     temp_hist_l = aa[:,1:-1]
+    phi_history_1 = ab[:,1:-1]
 
     t_dim,x_dim  = temp_hist_l.shape
     # Niyama Calcualtion
@@ -167,17 +169,18 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,h
     Ny = np.divide(grad_t_x, sq_grad_t_t, out=np.zeros_like(grad_t_x, dtype=float), where=sq_grad_t_t!=0)         # Niyama number
     # print(Ny)
 
+
     C_lambda = 40.0e-06                                                                 # C Lambda for Niyama number calculation
     del_Pcr = 1.01e5                                                                   # Critical Pressure difference
     dyn_visc = 1.2e-3                                                                  # Dynamic Viscosity
-    beta = (rho_s - rho_l)/ rho_l
+    beta = (rho_s - rho_l)/ rho_l                                                     # Beta    
     # print(beta)
-    del_Tf = T_L - T_S
+    del_Tf = T_L - T_S                                                               # Delta T
     # print(del_Tf)
     k1a=(dyn_visc*beta*del_Tf)                                                      
     k1 = (del_Pcr/k1a)**(1/2)
     # print(k1)
-    num_steps = temperature_history_1.shape[0]-1
+    num_steps = temp_hist_l.shape[0]-1                                # Number of time steps
     # print(num_steps)
 
     # k2 = np.divide(grad_t_x, grad_t_t_power, out=np.zeros_like(grad_t_x, dtype=float), where=grad_t_t_power!=0)
@@ -218,16 +221,16 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,h
     Cr_Nys = np.min(Ny_s[Ny_index,:])                                # Minimum Niyama number at the time of interest
     
     indices =[]
-    threshold = T_S + 0.9*(T_L-T_S)
+    threshold = T_S + 0.1*(T_L-T_S)
     tolerance = 1.0
     # print(threshold)
 
     for i in range (t_dim):
         for j in range(x_dim):
             if np.absolute(temp_hist_l[i,j]- threshold) < tolerance:
-            indices.append((i,j))
+                indices.append((i,j))
 
-    print(indices)
+    # print(indices)
 
     for i in range (t_dim):
         for j in range(x_dim):
@@ -240,6 +243,61 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,h
     Lowest_Niyama = np.min(Niyama_array)
     Avg_Niyama = np.mean(Niyama_array)
 
+ 
+
+
+# # Check the new shape after transposing
+# print("Transposed Temperature History Shape:", temperature_history.shape)
+# print("Transposed Phi History Shape:", phi_history.shape)
+
+    # Create a meshgrid for space and time coordinates
+    space_coord, time_coord = np.meshgrid(np.arange(temp_hist_l.shape[1]), np.arange(temp_hist_l.shape[0]))
+
+    time_coord = time_coord * dt 
+
+    hlt_t, hlt_x = zip(*indices)
+    real_t = []
+
+    for index in indices:
+        real_t.append(time_coord[index[0],index[1]])
+
+    # Create a figure with two subplots
+    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(25, 8))
+
+    # Plot the temperature history on the left subplot
+    im1 = ax1.pcolormesh(space_coord, time_coord, temp_hist_l, cmap='viridis')
+    ax1.set_xlabel('Space Coordinate', fontname='Times New Roman', fontsize=16)
+    ax1.set_ylabel('Time',fontname='Times New Roman', fontsize=16)
+    ax1.set_title('Temperature Variation Over Time',fontname='Times New Roman', fontsize=20)
+    fig.colorbar(im1, ax=ax1, label='Temperature')
+
+    # Plot the phase history on the right subplot
+    im2 = ax2.pcolormesh(space_coord, time_coord, phi_history_1, cmap='viridis')
+    ax2.set_xlabel('Space Coordinate', fontname='Times New Roman', fontsize=18)
+    ax2.set_ylabel('Time',fontname='Times New Roman', fontsize=16)
+    ax2.set_title('Phase Variation Over Time',fontname='Times New Roman', fontsize=20)
+    fig.colorbar(im2, ax=ax2, label='Phase')
+
+
+    #plot the main
+    # fig, ax = plt.subplots(figsize=(14, 6))
+
+    im3 = ax3.pcolormesh(space_coord, time_coord, Dim_ny, cmap='viridis')
+    im3 = ax3.scatter(hlt_x, real_t, color='r', s=1, zorder=5, label='Highlighted Points')  # s=100 sets the marker size, zorder=5 puts the points on top
+    ax3.set_xlabel('Space Coordinate')
+    ax3.set_ylabel('Time')
+    ax3.set_title('Niyama Variation Over Time')
+    fig.colorbar(im3, ax= ax3, label='Dimesnionless Niyama Number')
+
+
+
+    plt.tight_layout()
+    plt.show()
+
+
+
+
+    print(f'Lowest Niyama:{Lowest_Niyama}, rho_l:{rho_l}, rho_s:{rho_s}, k_l:{k_l}, k_s:{k_s}, cp_l:{cp_l}, cp_s:{cp_s}, t_surr:{t_surr}, L_fusion:{L_fusion}, temp_init:{temp_init},htc_l:{htc_l},htc_r:{htc_r}')
     return current_time, temperature_history, phi_history, Cr_Ny,Cr_Nys, Lowest_Niyama, Avg_Niyama
 
 
