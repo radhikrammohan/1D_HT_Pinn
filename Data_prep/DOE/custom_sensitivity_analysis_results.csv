@@ -1,0 +1,12 @@
+Factor,S1,ST
+rho_l,0.0,0.0
+rho_s,0.0,0.0
+k_l,0.0,0.0
+k_s,0.0,0.0
+cp_l,0.0,0.0
+cp_s,0.0,0.0
+Surr_temp,0.0,0.0
+L_fusion,0.0,0.0
+temp_init,0.0,0.0
+heat_transfer_coefficient_left,0.0,0.0
+heat_transfer_coefficient_right,0.0,0.0
