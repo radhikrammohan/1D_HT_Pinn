@@ -151,7 +151,9 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,h
     temperature_history_1 = np.array(temperature_history)                       # Convert temperature history to numpy array
     phi_history_1 = np.array(phi_history)                                      # Convert phase history to numpy array
     aa = np.array(temperature_history)
+    ab = np.array(phi_history)
     temp_hist_l = aa[:,1:-1]
+    phi_history_1 = ab[:,1:-1]
 
     t_dim,x_dim  = temp_hist_l.shape
     # Niyama Calcualtion
@@ -167,17 +169,18 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,h
     Ny = np.divide(grad_t_x, sq_grad_t_t, out=np.zeros_like(grad_t_x, dtype=float), where=sq_grad_t_t!=0)         # Niyama number
     # print(Ny)
 
+
     C_lambda = 40.0e-06                                                                 # C Lambda for Niyama number calculation
     del_Pcr = 1.01e5                                                                   # Critical Pressure difference
     dyn_visc = 1.2e-3                                                                  # Dynamic Viscosity
-    beta = (rho_s - rho_l)/ rho_l
+    beta = (rho_s - rho_l)/ rho_l                                                     # Beta    
     # print(beta)
-    del_Tf = T_L - T_S
+    del_Tf = T_L - T_S                                                               # Delta T
     # print(del_Tf)
     k1a=(dyn_visc*beta*del_Tf)                                                      
     k1 = (del_Pcr/k1a)**(1/2)
     # print(k1)
-    num_steps = temperature_history_1.shape[0]-1
+    num_steps = temp_hist_l.shape[0]-1                                # Number of time steps
     # print(num_steps)
 
     # k2 = np.divide(grad_t_x, grad_t_t_power, out=np.zeros_like(grad_t_x, dtype=float), where=grad_t_t_power!=0)
@@ -218,29 +221,37 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,h
     Cr_Nys = np.min(Ny_s[Ny_index,:])                                # Minimum Niyama number at the time of interest
     
     indices =[]
-    threshold = T_S + 0.9*(T_L-T_S)
+    threshold = T_S + 0.1*(T_L-T_S)
     tolerance = 1.0
     # print(threshold)
 
     for i in range (t_dim):
         for j in range(x_dim):
             if np.absolute(temp_hist_l[i,j]- threshold) < tolerance:
-            indices.append((i,j))
-
-    print(indices)
-
-    for i in range (t_dim):
-        for j in range(x_dim):
-            if (temp_hist_l[i,j]- threshold) < tolerance:
                 indices.append((i,j))
+
+    
 
     # print(Dim_ny.shape)
     Niyama_pct = [Dim_ny[i,j] for i,j in indices]
     Niyama_array = np.array(Niyama_pct)
-    Lowest_Niyama = np.min(Niyama_array)
+    Lowest_Niyama = round(np.min(Niyama_array),2)
     Avg_Niyama = np.mean(Niyama_array)
 
-    return current_time, temperature_history, phi_history, Cr_Ny,Cr_Nys, Lowest_Niyama, Avg_Niyama
+ 
+
+
+# # Check the new shape after transposing
+# print("Transposed Temperature History Shape:", temperature_history.shape)
+# print("Transposed Phi History Shape:", phi_history.shape)
+
+    
+
+
+
+
+    print(f'Lowest Niyama:{Lowest_Niyama}, rho_l:{rho_l}, rho_s:{rho_s}, k_l:{k_l}, k_s:{k_s}, cp_l:{cp_l}, cp_s:{cp_s}, t_surr:{t_surr}, L_fusion:{L_fusion}, temp_init:{temp_init},htc_l:{htc_l},htc_r:{htc_r}')
+    return Lowest_Niyama
 
 
 
