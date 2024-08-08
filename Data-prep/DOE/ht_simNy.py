@@ -1,11 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,htc_r):
+def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,htc_r, length):
     
 
     # Geometry
-    length = 15e-3                    # Length of the rod
+    length = length                    # Length of the rod
     num_points = 50                   # Number of spatial points
     dx = length / (num_points - 1)    # Grid spacing
 
@@ -235,6 +235,7 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,h
     # print(Dim_ny.shape)
     Niyama_pct = [Dim_ny[i,j] for i,j in indices]
     Niyama_array = np.array(Niyama_pct)
+    # print(Niyama_array)
     Lowest_Niyama = round(np.min(Niyama_array),2)
     Avg_Niyama = np.mean(Niyama_array)
 
@@ -250,7 +251,7 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,h
 
 
 
-    print(f'Lowest Niyama:{Lowest_Niyama}, rho_l:{rho_l}, rho_s:{rho_s}, k_l:{k_l}, k_s:{k_s}, cp_l:{cp_l}, cp_s:{cp_s}, t_surr:{t_surr}, L_fusion:{L_fusion}, temp_init:{temp_init},htc_l:{htc_l},htc_r:{htc_r}')
+    print(f'Lowest Niyama:{Lowest_Niyama}, rho_l:{rho_l}, rho_s:{rho_s}, k_l:{k_l}, k_s:{k_s}, cp_l:{cp_l}, cp_s:{cp_s}, t_surr:{t_surr}, L_fusion:{L_fusion}, temp_init:{temp_init},htc_l:{htc_l},htc_r:{htc_r},length:{length}')
     return Lowest_Niyama
 
 
