@@ -144,14 +144,25 @@ def pde_loss(model,x,t):
 
     return nn.MSELoss()(residual,torch.zeros_like(residual))
 
-def boundary_loss(u_pred,x,t,t_surr):
+def boundary_loss(model,x,t,t_surr):
     
+    x.requires_grad = True
+    t.requires_grad = True
+    
+    u_pred = model(x,t).requires_grad_(True)
     u_x = torch.autograd.grad(u_pred,x, 
                                 torch.ones_like(u_pred).to(device), 
                                 create_graph=True,
                                 allow_unused =True)[0] # Calculate the first space derivative
     t_surr_t = torch.tensor(t_surr, device=device)
-    res_l = u_x -(htc* (u_pred-t_surr_t))
+    htc =10.0
+    if u_x is None:
+        raise RuntimeError("u_x is None")
+    if u_pred is None:
+        raise RuntimeError("u_pred is None")
+    if t_surr_t is None:
+        raise RuntimeError("t_surr_t is None")
+    res_l = u_x -(htc*(u_pred-t_surr_t))
    
 
     return nn.MSELoss()(res_l,torch.zeros_like(res_l))
