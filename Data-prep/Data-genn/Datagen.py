@@ -173,17 +173,23 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,h
         fig, (ax1) = plt.subplots(1,figsize=(14, 6))
 
         # Plot the temperature history on the left subplot
-        im1 = ax1.pcolormesh(space_coord, time_coord, t_hist, cmap='coolwarm')
+        im1 = ax1.pcolormesh(space_coord, time_coord, t_hist, cmap='viridis', shading='auto')
         ax1.set_xlabel('Space Coordinate', fontname='Times New Roman', fontsize=16)
         ax1.set_ylabel('Time',fontname='Times New Roman', fontsize=16)
         ax1.set_title('Temperature Variation Over Time',fontname='Times New Roman', fontsize=20)
+        ax1.contour(space_coord, time_coord, t_hist, colors='red', linewidths=1.0, alpha=0.9)
+
         ax1.grid(True)
-        fig.colorbar(im1, ax=ax1, label='Temperature')
+        cbar = fig.colorbar(im1, ax=ax1)
+        cbar.ax.invert_yaxis()
+        cbar.set_label('Temperature (K)', rotation=270, labelpad=20, fontname='Times New Roman', fontsize=16)
         
-        plt.contour(t_hist, colors='black', linewidths=0.5)
+        # plt.contour(t_hist, colors='black', linewidths=0.5)
+        
         
         plt.tight_layout()
         plt.show()
+
         # Plot temperature history for debugging
         temperature_history_1 = np.array(temperature_history)
         print(temperature_history_1.shape)
