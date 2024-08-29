@@ -1,11 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.colors as colors
 
-def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,htc_r):
+def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,htc_r, length, gen_graph=True, gen_data=True):
     
 
     # Geometry
-    length = 15e-3                    # Length of the rod
+    length = length                    # Length of the rod
     num_points = 50                   # Number of spatial points
     dx = length / (num_points - 1)    # Grid spacing
 
@@ -66,7 +67,7 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,h
     maxi =  max(alpha_l, alpha_s)                         
     dt = abs(0.5 *((dx**2)/maxi))                           # Time step
     step_coeff = dt/ (dx**2)
-    current_time = dt  
+    current_time = 0  
     time_end = 1 
     
     # Initial temperature and phase fields
@@ -135,7 +136,8 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,h
         
              
         current_time = current_time + dt                                         # Update current time
-        time_end = time_end +dt                                                 # Update end time
+        time_end = time_end + dt                                             # Update end time
+        
         temperature = temperature.copy()                                        # Update temperature field
         phase = phase.copy()                                                        # Update phase field
         temp_initf = temperature.copy()                                          # Update additional temperature field
@@ -147,14 +149,21 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,h
             break
         
          # Check the new shape after transposing
-      
+
+    current_time = current_time - dt 
+    num_steps = len(temperature_history) - 1
+    
     temperature_history_1 = np.array(temperature_history)                       # Convert temperature history to numpy array
     phi_history_1 = np.array(phi_history)                                      # Convert phase history to numpy array
     aa = np.array(temperature_history)
     ab = np.array(phi_history)
     temp_hist_l = aa[:,1:-1]
     phi_history_1 = ab[:,1:-1]
-    print(temp_hist_l.shape)
+    midpoint_temperature_history = temperature_history_1[:,num_points//2]
+
+    t_hist = temp_hist_l
+    p_hist = phi_history_1
+
     t_dim,x_dim  = temp_hist_l.shape
     # Niyama Calcualtion
 
@@ -221,81 +230,134 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,h
     Cr_Nys = np.min(Ny_s[Ny_index,:])                                # Minimum Niyama number at the time of interest
     
     indices =[]
+    indices_nim =[]
     threshold = T_S + 0.1*(T_L-T_S)
     tolerance = 1.0
     # print(threshold)
+
+    Dim_ny_new = np.copy(Dim_ny)
+
+    for i in range(Dim_ny_new.shape[0]):
+        for j in range(Dim_ny_new.shape[1]):
+            if Dim_ny_new[i,j] > 3.5:
+                Dim_ny_new[i,j] = 0
+            else:
+                Dim_ny_new[i,j] = Dim_ny_new[i,j]
+    print(Dim_ny_new)
+
+
+
+
 
     for i in range (t_dim):
         for j in range(x_dim):
             if np.absolute(temp_hist_l[i,j]- threshold) < tolerance:
                 indices.append((i,j))
+                if Dim_ny[i,j] < 3.0:
+                    indices_nim.append((i,j))
+    
+    
+    
+    # print(indices_nim)          
 
-    # print(indices)
+    # print(Dim_ny)
+    Niyama_pct = [Dim_ny[i,j] for i,j in indices]
+    Niyama_array = np.array(Niyama_pct)
+    # print(Niyama_array)
+    Lowest_Niyama = round(np.min(Niyama_array),2)
+    Avg_Niyama = np.mean(Niyama_array)
+    print(f"Lowest Niyama Number: {Lowest_Niyama}")
+
+   
+    if gen_graph:
+        
+        # # Create a meshgrid for space and time coordinates
+        # space_coord, time_coord = np.meshgrid(np.arange(t_hist.shape[1]), np.arange(t_hist.shape[0]))
+
+        # time_coord = time_coord * dt 
+        # # Create a figure with two subplots
+        # fig, (ax1) = plt.subplots(1,figsize=(14, 6))
+
+        # # Plot the temperature history on the left subplot
+        # im1 = ax1.pcolormesh(space_coord, time_coord, t_hist, cmap='viridis', shading='auto')
+        # ax1.set_xlabel('Space Coordinate', fontname='Times New Roman', fontsize=16)
+        # ax1.set_ylabel('Time',fontname='Times New Roman', fontsize=16)
+        # ax1.set_title('Temperature Variation Over Time',fontname='Times New Roman', fontsize=20)
+        # ax1.contour(space_coord, time_coord, t_hist, colors='red', linewidths=1.0, alpha=0.9)
+
+        # ax1.grid(True)
+        # cbar = fig.colorbar(im1, ax=ax1)
+        # cbar.ax.invert_yaxis()
+        # cbar.set_label('Temperature (K)', rotation=270, labelpad=20, fontname='Times New Roman', fontsize=16)
+        
+        # # plt.contour(t_hist, colors='black', linewidths=0.5)
+        
+        
+        # plt.tight_layout()
+        # plt.show()
+
+        # # Plot temperature history for debugging
+        # temperature_history_1 = np.array(temperature_history)
+        # print(temperature_history_1.shape)
+        # time_ss= np.linspace(0, current_time, num_steps+1)
+        # # print(time_ss.shape)
+        # plt.figure(figsize=(10, 6))
+        # plt.plot(time_ss, midpoint_temperature_history, label='Midpoint Temperature')
+        # plt.axhline(y=T_L, color='r', linestyle='--', label='Liquidus Temperature')
+        # plt.axhline(y=T_S, color='g', linestyle='--', label='Solidus Temperature')
+        # plt.xlabel('Time(s)')
+        # plt.ylabel('Temperature (K)')
+        # plt.title('Temperature Distribution Over Time at x = 7.5mm') 
+        # plt.legend()
+        # plt.grid(True)
+        # plt.show()
+
+
+        # Plot Niyama number distribution
+       
+        space_coord_1, time_coord_1 = np.meshgrid(np.arange(Dim_ny.shape[1]), np.arange(Dim_ny.shape[0]))
+        time_coord_1 = time_coord_1 * dt
+        # norm = colors.Normalize(vmin= np.min(Dim_ny), vmax= np.max(Dim_ny), clip=False)
+        if indices_nim:
+            hlt_t, hlt_x = zip(*indices_nim)
+            real_t = []
+            for index in indices_nim:
+                real_t.append(time_coord_1[index[0],index[1]])
+
+        plt.figure(figsize=(14, 6))
+
+        im1 =plt.pcolormesh(space_coord_1, time_coord_1, Dim_ny_new,cmap='viridis', shading='auto')
+        if indices_nim:
+            plt.scatter(hlt_x, real_t, color='red', s=20, marker='o', alpha=0.8,zorder=50, label='Heat Loss Threshold')
+        plt.xlabel('Space Coordinate', fontname='Times New Roman', fontsize=16)
+        plt.ylabel('Time',fontname='Times New Roman', fontsize=16)
+        plt.xscale('linear')
+        plt.yscale('linear')
+        plt.rcParams['figure.dpi'] = 600
+        plt.title('Niyama Number Distribution Over Time',fontname='Times New Roman', fontsize=20)
+        # plt.contour(space_coord_1, time_coord_1, Dim_ny, colors='white', linewidths=1.0, alpha=0.9)
+        plt.grid(True)
+        cbar = plt.colorbar(im1)
+        # cbar.ax.invert_yaxis()
+        cbar.set_label('Niyama Number', rotation=270, labelpad=20, fontname='Times New Roman', fontsize=16)
+        plt.tight_layout()
+        plt.show()
+        
+        plt.figure(figsize=(14, 6))
+
+        
+    if gen_data:
+        return t_hist
+    
+  
 
     
 
-    # print(Dim_ny.shape)
-    Niyama_pct = [Dim_ny[i,j] for i,j in indices]
-    Niyama_array = np.array(Niyama_pct)
-    Lowest_Niyama = np.min(Niyama_array)
-    Avg_Niyama = np.mean(Niyama_array)
-
- 
-
-
-# # Check the new shape after transposing
-# print("Transposed Temperature History Shape:", temperature_history.shape)
-# print("Transposed Phi History Shape:", phi_history.shape)
-
-    # Create a meshgrid for space and time coordinates
-    space_coord, time_coord = np.meshgrid(np.arange(temp_hist_l.shape[1]), np.arange(temp_hist_l.shape[0]))
-
-    time_coord = time_coord * dt 
-
-    hlt_t, hlt_x = zip(*indices)
-    real_t = []
-
-    for index in indices:
-        real_t.append(time_coord[index[0],index[1]])
-
-    # Create a figure with two subplots
-    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(25, 8))
-
-    # Plot the temperature history on the left subplot
-    im1 = ax1.pcolormesh(space_coord, time_coord, temp_hist_l, cmap='viridis')
-    ax1.set_xlabel('Space Coordinate', fontname='Times New Roman', fontsize=16)
-    ax1.set_ylabel('Time',fontname='Times New Roman', fontsize=16)
-    ax1.set_title('Temperature Variation Over Time',fontname='Times New Roman', fontsize=20)
-    fig.colorbar(im1, ax=ax1, label='Temperature')
-
-    # Plot the phase history on the right subplot
-    im2 = ax2.pcolormesh(space_coord, time_coord, phi_history_1, cmap='viridis')
-    ax2.set_xlabel('Space Coordinate', fontname='Times New Roman', fontsize=18)
-    ax2.set_ylabel('Time',fontname='Times New Roman', fontsize=16)
-    ax2.set_title('Phase Variation Over Time',fontname='Times New Roman', fontsize=20)
-    fig.colorbar(im2, ax=ax2, label='Phase')
-
-
-    #plot the main
-    # fig, ax = plt.subplots(figsize=(14, 6))
-
-    im3 = ax3.pcolormesh(space_coord, time_coord, Dim_ny[:,1:-1], cmap='viridis')
-    im3 = ax3.scatter(hlt_x, real_t, color='r', s=1, zorder=5, label='Highlighted Points')  # s=100 sets the marker size, zorder=5 puts the points on top
-    ax3.set_xlabel('Space Coordinate')
-    ax3.set_ylabel('Time')
-    ax3.set_title('Niyama Variation Over Time')
-    fig.colorbar(im3, ax= ax3, label='Dimesnionless Niyama Number')
 
 
 
-    plt.tight_layout()
-    plt.show()
-
-
-
-
-    print(f'Lowest Niyama:{Lowest_Niyama}, rho_l:{rho_l}, rho_s:{rho_s}, k_l:{k_l}, k_s:{k_s}, cp_l:{cp_l}, cp_s:{cp_s}, t_surr:{t_surr}, L_fusion:{L_fusion}, temp_init:{temp_init},htc_l:{htc_l},htc_r:{htc_r}')
-    return current_time, temperature_history, phi_history, Cr_Ny,Cr_Nys, Lowest_Niyama, Avg_Niyama
+    # print(f'Lowest Niyama:{Lowest_Niyama}, rho_l:{rho_l}, rho_s:{rho_s}, k_l:{k_l}, k_s:{k_s}, cp_l:{cp_l}, cp_s:{cp_s}, t_surr:{t_surr}, L_fusion:{L_fusion}, temp_init:{temp_init},htc_l:{htc_l},htc_r:{htc_r},length:{length}')
+    
 
 
 

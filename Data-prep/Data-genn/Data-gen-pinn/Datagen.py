@@ -1,7 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.colors as colors
 
-def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,htc_r, length, gen_graph=True, gen_data=True):
+def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,htc_r, length):
     
 
     # Geometry
@@ -66,8 +67,22 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,h
     maxi =  max(alpha_l, alpha_s)                         
     dt = abs(0.5 *((dx**2)/maxi))                           # Time step
     step_coeff = dt/ (dx**2)
-    current_time = dt  
-    time_end = 1 
+    # current_time = dt  
+    time_end = 40 
+
+    maxi =  max(alpha_l, alpha_s)
+    dt = abs(0.5 *((dx**2)/maxi))                           # Time step
+    num_steps = round(time_end / dt)                          # Number of time steps
+    cfl = 0.5 *(dx**2)/maxi
+    time_steps = np.linspace(0, time_end, num_steps+1)        # Time steps
+    step_coeff = dt / (dx**2)                                # Step coefficient
+    # print(f"Time step: {dt}")
+    if dt <= cfl:
+        print("Stable")
+    else:
+        print("Unstable")
+        sys.exit()
+
     
     # Initial temperature and phase fields
     temperature = np.full(num_points, temp_init)             # Initial temperature field 
@@ -95,7 +110,7 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,h
 
     # midpoint_temperature_history = [temperature[midpoint_index]]
     
-    while current_time < time_end:  # time loop
+    for m in range(1,num_steps+1):                                      # time loop
         htc_l = htc_l
         htc_r = htc_r
         q1 = htc_l * (temp_initf[0] - t_surr)                     # Heat flux at the left boundary
@@ -134,23 +149,18 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,h
                 print("ERROR: should not be here")
         
              
-        current_time = current_time + dt                                         # Update current time
-        time_end = time_end + dt                                             # Update end time
+                                                    # Update end time
         
         temperature = temperature.copy()                                        # Update temperature field
         phase = phase.copy()                                                        # Update phase field
         temp_initf = temperature.copy()                                          # Update additional temperature field
         temperature_history.append(temperature.copy())                           # Store temperature field in history
         phi_history.append(phase.copy())                                             # Store phase field in history
-        # midpoint_temperature_history.append(temperature[midpoint_index])        
-        if np.all(phase == 1):
-            # print("Simulation complete @ time: ", current_time)
-            break
+        # midpoint_temperature_history.append(temperature[num_points//2])           # Store midpoint temperature in history
         
          # Check the new shape after transposing
 
-    current_time = current_time - dt 
-    num_steps = len(temperature_history) - 1
+    
     
     temperature_history_1 = np.array(temperature_history)                       # Convert temperature history to numpy array
     phi_history_1 = np.array(phi_history)                                      # Convert phase history to numpy array
@@ -163,50 +173,115 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,h
     t_hist = temp_hist_l
     p_hist = phi_history_1
 
+    # t_dim,x_dim  = temp_hist_l.shape
+    # Niyama Calcualtion
 
-    if gen_graph:
-        # Create a meshgrid for space and time coordinates
-        space_coord, time_coord = np.meshgrid(np.arange(t_hist.shape[1]), np.arange(t_hist.shape[0]))
+    # # print(temperature_history_1.shape)
+    # # Gradient Calculation
 
-        time_coord = time_coord * dt 
-        # Create a figure with two subplots
-        fig, (ax1) = plt.subplots(1,figsize=(14, 6))
+    # grad_t_x = np.absolute(np.gradient(temperature_history_1, dx, axis=1))     # Gradient of temperature with respect to space
+    # # print(grad_t_x[100,:])
+    # grad_t_t = np.absolute(np.gradient(temperature_history_1,dt,axis=0))       # Gradient of temperature with respect to time
+    # # print(grad_t_t[100,:])
+    # sq_grad_t_t = np.square(grad_t_t)                                         # Square of the gradient of temperature with respect to space
+    # Ny = np.divide(grad_t_x, sq_grad_t_t, out=np.zeros_like(grad_t_x, dtype=float), where=sq_grad_t_t!=0)         # Niyama number
+    # # print(Ny)
 
-        # Plot the temperature history on the left subplot
-        im1 = ax1.pcolormesh(space_coord, time_coord, t_hist, cmap='viridis', shading='auto')
-        ax1.set_xlabel('Space Coordinate', fontname='Times New Roman', fontsize=16)
-        ax1.set_ylabel('Time',fontname='Times New Roman', fontsize=16)
-        ax1.set_title('Temperature Variation Over Time',fontname='Times New Roman', fontsize=20)
-        ax1.contour(space_coord, time_coord, t_hist, colors='red', linewidths=1.0, alpha=0.9)
 
-        ax1.grid(True)
-        cbar = fig.colorbar(im1, ax=ax1)
-        cbar.ax.invert_yaxis()
-        cbar.set_label('Temperature (K)', rotation=270, labelpad=20, fontname='Times New Roman', fontsize=16)
+    # C_lambda = 40.0e-06                                                                 # C Lambda for Niyama number calculation
+    # del_Pcr = 1.01e5                                                                   # Critical Pressure difference
+    # dyn_visc = 1.2e-3                                                                  # Dynamic Viscosity
+    # beta = (rho_s - rho_l)/ rho_l                                                     # Beta    
+    # # print(beta)
+    # del_Tf = T_L - T_S                                                               # Delta T
+    # # print(del_Tf)
+    # k1a=(dyn_visc*beta*del_Tf)                                                      
+    # k1 = (del_Pcr/k1a)**(1/2)
+    # # print(k1)
+    # num_steps = temp_hist_l.shape[0]-1                                # Number of time steps
+    # # print(num_steps)
+
+    # # k2 = np.divide(grad_t_x, grad_t_t_power, out=np.zeros_like(grad_t_x, dtype=float), where=grad_t_t_power!=0)
+    # k2 = np.zeros((num_steps+1,num_points))
+    # k3 = np.zeros((num_steps+1,num_points))
+    # for i in range(num_steps+1):
+    #     for j in range(num_points):
+    #         if grad_t_x[i,j] == 0:
+    #             k2[i,j] = 0
+    #             k3[i,j] = 0
+    #         if grad_t_t[i,j]== 0:
+    #             k2[i,j] = 0
+    #             k3[i,j] = 0
+    #         else:
+    #             k2[i,j] = ((grad_t_x[i,j]))/ (((grad_t_t[i,j]))**(5/6))
+    #             k3[i,j] = (grad_t_x[i,j])/ ((grad_t_t[i,j])**(1/2))
         
-        # plt.contour(t_hist, colors='black', linewidths=0.5)
-        
-        
-        plt.tight_layout()
-        plt.show()
+    # # k2 = grad_t_x/((grad_t_t)**(5/6))
+    # # print(k2)
+    # Ny_s= k3
+    # Dim_ny = C_lambda * k1 * k2
+    # # print(Dim_ny)
 
-        # Plot temperature history for debugging
-        temperature_history_1 = np.array(temperature_history)
-        print(temperature_history_1.shape)
-        time_ss= np.linspace(0, current_time, num_steps+1)
-        # print(time_ss.shape)
-        plt.figure(figsize=(10, 6))
-        plt.plot(time_ss, midpoint_temperature_history, label='Midpoint Temperature')
-        plt.axhline(y=T_L, color='r', linestyle='--', label='Liquidus Temperature')
-        plt.axhline(y=T_S, color='g', linestyle='--', label='Solidus Temperature')
-        plt.xlabel('Time(s)')
-        plt.ylabel('Temperature (K)')
-        plt.title('Temperature Distribution Over Time at x = 7.5mm') 
-        plt.legend()
-        plt.grid(True)
-        plt.show()
-    if gen_data:
-        return t_hist
+    # # print(grad_t_t[:, 50])
+    # # plot = plt.figure(figsize=(10, 6))
+    # # plt.plot(time_ss, grad_t_x[:, 50], label='Niyama Number at x = 7.5mm')
+    # # plt.xlabel('Time(s)')
+    # # plt.ylabel('Niyama Number')
+    # # plt.title('Niyama Number Distribution Over Time at x = 7.5mm')
+    # # plt.legend()
+    # # plt.show()**
+    
+    
+    # Ny_time = 0.90*time_end                                    # Time at which Niyama number is calculated 
+
+    # Ny_index = int(Ny_time/dt)                                      # Index of the time at which Niyama number is calculated
+    # Cr_Ny = np.min(Dim_ny[Ny_index, :])
+    # Cr_Nys = np.min(Ny_s[Ny_index,:])                                # Minimum Niyama number at the time of interest
+    
+    # indices =[]
+    # indices_nim =[]
+    # threshold = T_S + 0.1*(T_L-T_S)
+    # tolerance = 1.0
+    # # print(threshold)
+
+    # Dim_ny_new = np.copy(Dim_ny)
+
+    # for i in range(Dim_ny_new.shape[0]):
+    #     for j in range(Dim_ny_new.shape[1]):
+    #         if Dim_ny_new[i,j] > 3.5:
+    #             Dim_ny_new[i,j] = 0
+    #         else:
+    #             Dim_ny_new[i,j] = Dim_ny_new[i,j]
+    # print(Dim_ny_new)
+
+
+
+
+
+    # for i in range (t_dim):
+    #     for j in range(x_dim):
+    #         if np.absolute(temp_hist_l[i,j]- threshold) < tolerance:
+    #             indices.append((i,j))
+    #             if Dim_ny[i,j] < 3.0:
+    #                 indices_nim.append((i,j))
+    
+    
+    
+    # print(indices_nim)          
+
+    # print(Dim_ny)
+    # Niyama_pct = [Dim_ny[i,j] for i,j in indices]
+    # Niyama_array = np.array(Niyama_pct)
+    # # print(Niyama_array)
+    # Lowest_Niyama = round(np.min(Niyama_array),2)
+    # Avg_Niyama = np.mean(Niyama_array)
+    # # print(f"Lowest Niyama Number: {Lowest_Niyama}")
+
+   
+    x = np.linspace(0, length, num_points)                           # Spatial points
+    t = np.linspace(0, time_end, num_steps+1)                        # Time points
+    # print(t_hist.shape)
+    return aa,x,t
     
   
 
@@ -215,8 +290,6 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,h
 
 
 
-    # print(f'Lowest Niyama:{Lowest_Niyama}, rho_l:{rho_l}, rho_s:{rho_s}, k_l:{k_l}, k_s:{k_s}, cp_l:{cp_l}, cp_s:{cp_s}, t_surr:{t_surr}, L_fusion:{L_fusion}, temp_init:{temp_init},htc_l:{htc_l},htc_r:{htc_r},length:{length}')
     
-
 
 
