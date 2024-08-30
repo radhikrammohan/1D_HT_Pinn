@@ -14,12 +14,12 @@ import torch
 
 
 def input_gen(space,time, type):
-    if type == 'scr':
-        scaler = StandardScaler()
-        space_tr = scaler.fit_transform(space.reshape(-1,1))
-        time_tr = scaler.fit_transform(time.reshape(-1,1))
-        input_vec = np.hstack((space_tr,time_tr))
-    if type == 'mgrid':
+    if type == 'scr': # this to create a space-time for initial and boundary conditions
+        scaler = StandardScaler() # Standardize the input
+        space_tr = scaler.fit_transform(space.reshape(-1,1)) # Reshape the input to 2D array
+        time_tr = scaler.fit_transform(time.reshape(-1,1)) # Reshape the input to 2D array
+        input_vec = np.hstack((space_tr,time_tr)) # Stack the input arrays horizontally
+    if type == 'mgrid':  # this to create a grid for the entire space-time domain
 
         scaler = StandardScaler()
 

@@ -66,7 +66,7 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,h
     maxi =  max(alpha_l, alpha_s)                         
     dt = abs(0.5 *((dx**2)/maxi))                           # Time step
     step_coeff = dt/ (dx**2)
-    current_time = dt  
+    current_time = 0  
     time_end = 1 
     
     # Initial temperature and phase fields
@@ -154,7 +154,7 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,h
     ab = np.array(phi_history)
     temp_hist_l = aa[:,1:-1]
     phi_history_1 = ab[:,1:-1]
-
+    print(temp_hist_l.shape)
     t_dim,x_dim  = temp_hist_l.shape
     # Niyama Calcualtion
 

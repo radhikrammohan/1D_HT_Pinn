@@ -154,7 +154,7 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,h
     ab = np.array(phi_history)
     temp_hist_l = aa[:,1:-1]
     phi_history_1 = ab[:,1:-1]
-
+    print(temp_hist_l.shape)
     t_dim,x_dim  = temp_hist_l.shape
     # Niyama Calcualtion
 
@@ -232,10 +232,7 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,h
 
     # print(indices)
 
-    for i in range (t_dim):
-        for j in range(x_dim):
-            if (temp_hist_l[i,j]- threshold) < tolerance:
-                indices.append((i,j))
+    
 
     # print(Dim_ny.shape)
     Niyama_pct = [Dim_ny[i,j] for i,j in indices]
