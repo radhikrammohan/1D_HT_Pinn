@@ -383,7 +383,7 @@ inputs_b_r = input_gen(sp_b_r,time_b_r,'scr')
 
 
 # %%
-print(inputs.shape,inputs_i.shape,inputs_b_l.shape,inputs_b_r.shape)
+# print(inputs.shape,inputs_i.shape,inputs_b_l.shape,inputs_b_r.shape)
 
 # %%
 
@@ -395,14 +395,14 @@ inputs_init = torch.tensor(inputs_i).float().to(device) # Convert the inputs to 
 inputs_b_l = torch.tensor(inputs_b_l).float().to(device) # Convert the inputs to a tensor
 inputs_b_r = torch.tensor(inputs_b_r).float().to(device) # Convert the inputs to a tensor
 
-print(inputs_init.shape)
+# print(inputs_init.shape)
 # label/temp data
 temp_tr = torch.tensor(t_hist).float().to(device) # Convert the temperature history to a tensor
 temp_inp = temp_tr.reshape(-1,1) # Reshape the temperature tensor to a column vector
 temp_inp_init = torch.tensor(t_hist_init).float().to(device) # Convert the temperature history to a tensor
 temp_inp_bc_l = torch.tensor(t_hist_bc_l).float().to(device) # Convert the temperature history to a tensor
 temp_inp_bc_r = torch.tensor(t_hist_bc_r).float().to(device) # Convert the temperature history to a tensor
-print(temp_inp.shape)
+# print(temp_inp.shape)
 
 
 
@@ -621,10 +621,15 @@ def accuracy(u_pred, u_true):
 # ### Training, Validation and Testing Module
 
 # %%
-def training_loop(epochs, model, loss_fn_data, optimizer, train_dataloader,):
+def training_loop(epochs, model, loss_fn_data, optimizer, train_dataloader,test_dataloader,train_loader_init,\
+                  train_loader_bc_l,train_loader_bc_r):
     train_losses = []  # Initialize the list to store the training losses
     val_losses = []    # Initialize the list to store the validation losses
-
+    test_losses = []   # Initialize the list to store the test losses
+    data_losses = []   # Initialize the list to store the data losses
+    pde_losses = []   # Initialize the list to store the PDE losses
+    ic_losses = []   # Initialize the list to store the initial condition losses
+    bc_losses = []   # Initialize the list to store the boundary condition losses
     for epoch in range(epochs):
         model.train()                                                                           # Set the model to training mode
         train_loss = 0                                                                              # Initialize the training loss
@@ -662,17 +667,21 @@ def training_loop(epochs, model, loss_fn_data, optimizer, train_dataloader,):
             bc_loss_left = boundary_loss(model,inputs_b_l[:,0].unsqueeze(1),inputs_b_l[:,1].unsqueeze(1),t_surr) # Calculate the left boundary condition loss
             bc_loss_right = boundary_loss(model,inputs_b_r[:,0].unsqueeze(1),inputs_b_r[:,1].unsqueeze(1),t_surr) # Calculate the right boundary condition loss
             bc_loss = bc_loss_left + bc_loss_right
-            # l1_regularization_loss = l1_regularization(model, lambda_l1)                      # Calculate the L1 regularization loss
-            # loss = data_loss  + pd_loss + initc_loss + bc_loss                                              # Calculate the total loss
-            loss = data_loss + pd_loss + initc_loss + bc_loss
-            train_accuracy += accuracy(u_pred, temp_inp)                                                              # Calculate the total loss
+            w1 = 0.001
+            w2 = 0.0001
+            w3 = 0.0001
+            loss = data_loss + w1* pd_loss + w2 *initc_loss + w3* bc_loss
+            train_accuracy += accuracy(u_pred, temp_inp)                 
             # Backpropagation
             loss.backward(retain_graph=True)                                                        # Backpropagate the gradients
             
             optimizer.step()                                                                           # Update the weights
             
             train_loss += loss.item()                                                           # Add the loss to the training set loss                 
-
+            data_losses.append(data_loss.item())               
+            pde_losses.append(pd_loss.item())
+            ic_losses.append(initc_loss.item())
+            bc_losses.append(bc_loss.item())
         
 
         # model.eval()
@@ -696,13 +705,29 @@ def training_loop(epochs, model, loss_fn_data, optimizer, train_dataloader,):
         # if epoch % 10 == 0:
         #     print(f"Epoch {epoch}, Training-Loss {train_loss:.4e}")
         
-        
+        model.eval()
+        test_loss = 0
+        test_accuracy = 0
+        with torch.no_grad():   
+            for batch in test_dataloader:
+                inputs, temp_inp= batch
+                inputs, temp_inp= inputs.to(device), temp_inp.to(device)
+                u_pred = model(inputs[:,0].unsqueeze(1), inputs[:,1].unsqueeze(1))
+                data_loss = loss_fn_data(u_pred, temp_inp)
+                # l1_regularization_loss = l1_regularization(model, lambd)
+                # loss = data_loss  + l1_regularization_loss
+                loss = data_loss
+                test_accuracy = accuracy(u_pred, temp_inp)
+                test_loss += loss.item()
+        test_losses.append(test_loss)
+
+
         if epoch % 10 == 0:
             print(f"Epoch {epoch}, Training-Loss {train_loss:.4e}, Data-loss {data_loss:.4e}\
                   , pde-loss {pd_loss:.4e}, initc-loss {initc_loss:.4e}\
-                    bc_loss {bc_loss:.4e}") 
+                    bc_loss {bc_loss:.4e}, Test-Loss {test_loss:.4e}") 
 
-    return train_losses, val_losses                                                             # Return the training and validation losses
+    return train_losses, test_losses , pde_losses , bc_losses , ic_losses, data_losses                                    # Return the training and validation losses
 
 
 # %%
@@ -732,7 +757,8 @@ def test_loop(epochs, model, loss_fn_data, optimizer, train_dataloader, test_dat
 
 # %%
 
-train_losses, val_losses = training_loop(epochs, model, loss_fn_data, optimizer,train_loader)  # Train the model
+train_losses, test_losses, pde_losses, bc_losses,ic_losses, data_losses = training_loop(epochs, model, loss_fn_data, optimizer,train_loader,test_loader,train_loader_init,\
+                  train_loader_bc_l,train_loader_bc_r)  # Train the model
  
 test_losses = test_loop(epochs, model, loss_fn_data, optimizer, train_loader, test_loader)  # Test the model
 
@@ -743,16 +769,17 @@ test_losses = test_loop(epochs, model, loss_fn_data, optimizer, train_loader, te
     
     
 
-# %%
+
 temp_nn = model(inputs[:,0].unsqueeze(1), inputs[:,1].unsqueeze(1)).cpu().detach().numpy() # Get the predictions from the model
 
 temp_nn = temp_nn.reshape(num_steps+1, num_points) # Reshape the predictions to a 2D array
-time_ss= np.linspace(0, time_end, num_steps+1)
+time_ss= np.linspace(0, time_end, num_steps+1 )
 plt.figure
-plt.plot(time_ss, temp_nn[:,num_points//2], label='Predicted Temperature')
+plt.plot(time_ss, temp_nn[:, num_points//2], label='Predicted Temperature')
 plt.plot(time_ss, temperature_history[:,num_points//2], label='Actual Temperature')
 plt.xlabel('Time(s)')
 plt.ylabel('Temperature (K)')
+plt.yscale('log')
 plt.title('Predicted vs Actual Temperature at x = 7.5mm')
 plt.legend()
 plt.show()
@@ -761,11 +788,58 @@ plt.show()
 # %%
 plt.figure(figsize=(10, 6))
 plt.plot(train_losses, label='Training Loss')
-plt.plot(val_losses, label='Validation Loss')
+plt.plot(test_losses, label='test Loss')
 plt.xlabel('Epochs')
 plt.ylabel('Loss')
+plt.yscale('log')
 plt.title('Training and Validation Loss')
 plt.legend()
 plt.show()
 
 
+plt.figure(figsize=(10, 6))
+plt.plot(data_losses, label='Data Loss')
+plt.plot(pde_losses, label='Pde Loss')
+plt.plot(ic_losses, label='IC Loss')
+plt.plot(bc_losses, label='BC Loss')
+plt.xlabel('Epochs')
+plt.ylabel('Loss')
+plt.yscale('log')
+plt.title('Training and Validation Loss')
+plt.legend()
+plt.show()
+
+space_coord, time_coord = np.meshgrid(np.arange(t_hist.shape[1]), np.arange(t_hist.shape[0]))
+
+time_coord = time_coord * dt 
+# Create a figure with two subplots
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 8))
+
+
+# Plot the temperature history on the left subplot
+im1 = ax1.pcolormesh(space_coord, time_coord, t_hist, cmap='viridis', shading='auto')
+ax1.set_xlabel('Space Coordinate', fontname='Times New Roman', fontsize=16)
+ax1.set_ylabel('Time',fontname='Times New Roman', fontsize=16)
+ax1.set_title('Temperature Variation Over Time(Analytical Model)',fontname='Times New Roman', fontsize=20)
+ax1.contour(space_coord, time_coord, t_hist, colors='red', linewidths=1.0, alpha=0.9)
+
+ax1.grid(True)
+cbar = fig.colorbar(im1, ax=ax1)
+cbar.ax.invert_yaxis()
+cbar.set_label('Temperature (K)', rotation=270, labelpad=20, fontname='Times New Roman', fontsize=16)
+
+im2 = ax2.pcolormesh(space_coord, time_coord, temp_nn, cmap='viridis', shading='auto')
+ax2.set_xlabel('Space Coordinate', fontname='Times New Roman', fontsize=16)
+ax2.set_ylabel('Time',fontname='Times New Roman', fontsize=16)
+ax2.set_title('Temperature Variation Over Time(PINN model)',fontname='Times New Roman', fontsize=20)
+ax2.contour(space_coord, time_coord, t_hist, colors='red', linewidths=1.0, alpha=0.9)
+
+ax2.grid(True)
+cbar = fig.colorbar(im2, ax=ax2)
+cbar.ax.invert_yaxis()
+cbar.set_label('Temperature (K)', rotation=270, labelpad=20, fontname='Times New Roman', fontsize=16)
+
+
+plt.tight_layout()
+plt.show()

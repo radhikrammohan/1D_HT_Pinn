@@ -44,6 +44,8 @@ module load eval "$(conda shell.bash hook)"
 module load conda activate pytorch-env
 module load cuDNN/8.9.3.28-CUDA-12.2.0
 
+python H_1.py
+
 ##DO NOT ADD/EDIT BEYOND THIS LINE##
 ##Job monitor command to list the resource usage
 my-job-stats -a -n -s
