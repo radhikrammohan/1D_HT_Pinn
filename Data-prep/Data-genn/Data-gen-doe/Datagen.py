@@ -271,52 +271,58 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,h
    
     if gen_graph:
         
-        # # Create a meshgrid for space and time coordinates
-        # space_coord, time_coord = np.meshgrid(np.arange(t_hist.shape[1]), np.arange(t_hist.shape[0]))
+        # Create a meshgrid for space and time coordinates
+        space_coord, time_coord = np.meshgrid(np.arange(t_hist.shape[1]), np.arange(t_hist.shape[0]))
+        space_coord = space_coord * dx
+        time_coord = time_coord * dt 
+        # Create a figure with two subplots
+        fig, (ax1) = plt.subplots(1,figsize=(14, 6))
 
-        # time_coord = time_coord * dt 
-        # # Create a figure with two subplots
-        # fig, (ax1) = plt.subplots(1,figsize=(14, 6))
-
-        # # Plot the temperature history on the left subplot
-        # im1 = ax1.pcolormesh(space_coord, time_coord, t_hist, cmap='viridis', shading='auto')
-        # ax1.set_xlabel('Space Coordinate', fontname='Times New Roman', fontsize=16)
-        # ax1.set_ylabel('Time',fontname='Times New Roman', fontsize=16)
-        # ax1.set_title('Temperature Variation Over Time',fontname='Times New Roman', fontsize=20)
-        # ax1.contour(space_coord, time_coord, t_hist, colors='red', linewidths=1.0, alpha=0.9)
-
-        # ax1.grid(True)
-        # cbar = fig.colorbar(im1, ax=ax1)
-        # cbar.ax.invert_yaxis()
-        # cbar.set_label('Temperature (K)', rotation=270, labelpad=20, fontname='Times New Roman', fontsize=16)
+        # Plot the temperature history on the left subplot
+        im1 = ax1.pcolormesh(space_coord, time_coord, t_hist, cmap='coolwarm', shading='auto')
+        ax1.set_xlim(left=0, right=length,auto=True)
+        ax1.set_ylim(0, current_time)
         
-        # # plt.contour(t_hist, colors='black', linewidths=0.5)
+        ax1.set_xlabel('Space (mm)', fontname='Times New Roman', fontsize=16)
         
-        
-        # plt.tight_layout()
-        # plt.show()
+        ax1.set_ylabel('Time(Seconds)',fontname='Times New Roman', fontsize=16)
+        ax1.set_title('Temperature Variation Over Time',fontname='Times New Roman', fontsize=20)
+        ax1.contour(space_coord, time_coord, t_hist, colors='red', linewidths=1.0, alpha=0.9)
 
-        # # Plot temperature history for debugging
-        # temperature_history_1 = np.array(temperature_history)
-        # print(temperature_history_1.shape)
-        # time_ss= np.linspace(0, current_time, num_steps+1)
-        # # print(time_ss.shape)
-        # plt.figure(figsize=(10, 6))
-        # plt.plot(time_ss, midpoint_temperature_history, label='Midpoint Temperature')
-        # plt.axhline(y=T_L, color='r', linestyle='--', label='Liquidus Temperature')
-        # plt.axhline(y=T_S, color='g', linestyle='--', label='Solidus Temperature')
-        # plt.xlabel('Time(s)')
-        # plt.ylabel('Temperature (K)')
-        # plt.title('Temperature Distribution Over Time at x = 7.5mm') 
-        # plt.legend()
-        # plt.grid(True)
-        # plt.show()
+        ax1.grid(True)
+        cbar = fig.colorbar(im1, ax=ax1)
+        cbar.ax.invert_yaxis()
+        cbar.set_label('Temperature (K)', rotation=270, labelpad=20, fontname='Times New Roman', fontsize=16)
+        
+        # plt.contour(t_hist, colors='black', linewidths=0.5)
+        
+        
+        plt.tight_layout()
+        plt.show()
+
+        # Plot temperature history for debugging
+        temperature_history_1 = np.array(temperature_history)
+        print(temperature_history_1.shape)
+        time_ss= np.linspace(0, current_time, num_steps+1)
+        # print(time_ss.shape)
+        plt.figure(figsize=(10, 6))
+        plt.plot(time_ss, midpoint_temperature_history, label='Midpoint Temperature')
+        plt.axhline(y=T_L, color='r', linestyle='--', label='Liquidus Temperature')
+        plt.axhline(y=T_S, color='g', linestyle='--', label='Solidus Temperature')
+        plt.xlabel('Time(s)',fontname='Times New Roman', fontsize=16)
+        plt.ylabel('Temperature (K)',fontname='Times New Roman', fontsize=16)
+        plt.title('Temperature Distribution Over Time at x = 7.5mm',fontname='Times New Roman', fontsize=20) 
+        plt.legend()
+        plt.grid(True)
+        plt.show()
 
 
         # Plot Niyama number distribution
        
         space_coord_1, time_coord_1 = np.meshgrid(np.arange(Dim_ny.shape[1]), np.arange(Dim_ny.shape[0]))
+        # space_coord_1 = space_coord_1 * dx
         time_coord_1 = time_coord_1 * dt
+        
         # norm = colors.Normalize(vmin= np.min(Dim_ny), vmax= np.max(Dim_ny), clip=False)
         if indices_nim:
             hlt_t, hlt_x = zip(*indices_nim)
@@ -329,12 +335,14 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,h
         im1 =plt.pcolormesh(space_coord_1, time_coord_1, Dim_ny_new,cmap='viridis', shading='auto')
         if indices_nim:
             plt.scatter(hlt_x, real_t, color='red', s=20, marker='o', alpha=0.8,zorder=50, label='Heat Loss Threshold')
-        plt.xlabel('Space Coordinate', fontname='Times New Roman', fontsize=16)
+        # plt.set_xlim(left=0, right=length,auto=True)
+        # plt.set_ylim(0, current_time)
+        plt.xlabel('Space (mm)', fontname='Times New Roman', fontsize=16)
         plt.ylabel('Time',fontname='Times New Roman', fontsize=16)
         plt.xscale('linear')
         plt.yscale('linear')
         plt.rcParams['figure.dpi'] = 600
-        plt.title('Niyama Number Distribution Over Time',fontname='Times New Roman', fontsize=20)
+        plt.title('Evolution of Niyama below threshold',fontname='Times New Roman', fontsize=20)
         # plt.contour(space_coord_1, time_coord_1, Dim_ny, colors='white', linewidths=1.0, alpha=0.9)
         plt.grid(True)
         cbar = plt.colorbar(im1)
