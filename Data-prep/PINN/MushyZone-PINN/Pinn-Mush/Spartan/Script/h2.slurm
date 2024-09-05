@@ -3,7 +3,8 @@
 # Fri Aug 30 2024 17:20:44 GMT+1000 (Australian Eastern Standard Time)
 
 # Partition for the job:
-#SBATCH --partition=gpu-a100
+#SBATCH --partition=deeplearn
+#SBATCH --qos=gpgpudeeplearn
 
 # The name of the job:
 #SBATCH --job-name="p1"
