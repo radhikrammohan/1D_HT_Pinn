@@ -101,12 +101,12 @@ def l1_regularization(model, lambd):
     l1_reg = sum(param.abs().sum() for param in model.parameters())
     return l1_reg * lambd
 
-def pde_loss(model,x,t,h):
+def pde_loss(model,x,t):
     # u_pred.requires_grad = True
     x.requires_grad = True
     t.requires_grad = True
     
-    u_pred = model(x,t,h).requires_grad_()
+    u_pred = model(x,t).requires_grad_()
     u_t = torch.autograd.grad(u_pred, t, 
                                 torch.ones_like(u_pred).to(device),
                                 create_graph=True,
@@ -144,17 +144,17 @@ def pde_loss(model,x,t,h):
 
     return nn.MSELoss()(residual,torch.zeros_like(residual))
 
-def boundary_loss(model,x,t,h,t_surr):
+def boundary_loss(model,x,t,t_surr):
     
     x.requires_grad = True
     t.requires_grad = True
-    
-    u_pred = model(x,t,h).requires_grad_(True)
+    t_surr_t = torch.tensor(t_surr, device=device)
+    u_pred = model(x,t).requires_grad_(True)
     u_x = torch.autograd.grad(u_pred,x, 
                                 torch.ones_like(u_pred).to(device), 
                                 create_graph=True,
                                 allow_unused =True)[0] # Calculate the first space derivative
-    t_surr_t = torch.tensor(t_surr, device=device)
+   
     htc =10.0
     if u_x is None:
         raise RuntimeError("u_x is None")
@@ -167,7 +167,7 @@ def boundary_loss(model,x,t,h,t_surr):
 
     return nn.MSELoss()(res_l,torch.zeros_like(res_l))
 
-def ic_loss(u_pred):
+def ic_loss(u_pred,temp_init):
     temp_init_tsr = torch.tensor(temp_init,device=device)
     ic = u_pred -temp_init_tsr
     return nn.MSELoss()(ic,torch.zeros_like(ic))
