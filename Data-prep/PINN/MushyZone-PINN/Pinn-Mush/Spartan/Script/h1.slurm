@@ -14,7 +14,7 @@
 # Number of GPUs requested per node:
 #SBATCH --gres=gpu:2
 # The amount of memory in megabytes per cpu core:
-#SBATCH --mem-per-cpu=65536
+#SBATCH --mem-per-cpu=10240
 
 # Use this email address:
 #SBATCH --mail-user=rrammohan@student.unimelb.edu.au
@@ -40,9 +40,12 @@ fi
 
 # The modules to load:
 module load Anaconda3/2022.10
-module load eval "$(conda shell.bash hook)"
-module load conda activate pytorch-env
+
+module load cuda/11.4.0
 module load cuDNN/8.9.3.28-CUDA-12.2.0
+
+eval "$(conda shell.bash hook)"
+conda activate pytorch-env
 
 python H_1.py
 
