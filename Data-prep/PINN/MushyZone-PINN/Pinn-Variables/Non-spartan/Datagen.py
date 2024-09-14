@@ -280,8 +280,12 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,h
    
     x = np.linspace(0, length, num_points)                           # Spatial points
     t = np.linspace(0, time_end, num_steps+1)                        # Time points
+    dx = dx
+    dt = dt
+    length = length
+    time_end = time_end
     # print(t_hist.shape)
-    return aa,x,t
+    return aa,x,t,dx,dt,length,time_end
     
   
 

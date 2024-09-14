@@ -16,18 +16,20 @@ import torch
 def input_gen(space,time, type,scale = False):
     if type == 'scr': # this to create a space-time for initial and boundary conditions
         if scale:
-            scaler = StandardScaler()
-            space = scaler.fit_transform(space.reshape(-1,1))
-            time = scaler.fit_transform(time.reshape(-1,1))
+            scaler1 = StandardScaler()
+            scaler2 = StandardScaler()
+            space = scaler1.fit_transform(space.reshape(-1,1))
+            time = scaler2.fit_transform(time.reshape(-1,1))
             input_vec = np.hstack((space,time))
         else:
             input_vec = np.hstack((space,time))
         
     if type == 'mgrid':  # this to create a grid for the entire space-time domain
         if scale:
-            scaler = StandardScaler()
-            space_ = scaler.fit_transform(space.reshape(-1,1))
-            time = scaler.fit_transform(time.reshape(-1,1))
+            scaler3 = StandardScaler()
+            scaler4 = StandardScaler()
+            space_ = scaler3.fit_transform(space.reshape(-1,1))
+            time = scaler4.fit_transform(time.reshape(-1,1))
             space, time = np.meshgrid(space, time)
             space = space.flatten().reshape(-1,1)
             time = time.flatten().reshape(-1,1)
@@ -88,7 +90,7 @@ def meshgen(space,time):
 
     return space, time
 
-def input_vgen(space,time,htc,L_f):
-    input = np.column_stack((space,time,htc,L_f))
+def input_vgen(space,time):
+    input = np.column_stack((space,time))
     return input
 
