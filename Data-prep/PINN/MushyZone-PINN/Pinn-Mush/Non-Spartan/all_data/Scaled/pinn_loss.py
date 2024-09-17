@@ -118,7 +118,7 @@ def pde_loss(model,x,t):
     u_x = torch.autograd.grad(u_pred, 
                                 x, 
                                 torch.ones_like(u_pred).to(device), 
-                                create_graph=True,
+                                create_graph=True,-
                                 allow_unused =True)[0] # Calculate the first space derivative
             
     u_xx = torch.autograd.grad(u_x, 

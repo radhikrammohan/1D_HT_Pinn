@@ -223,14 +223,14 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,h
     # plt.show()**
     
     
-    Ny_time = 0.90*current_time                                     # Time at which Niyama number is calculated 
+    Ny_time = 0.90 * current_time                                     # Time at which Niyama number is calculated 
 
     Ny_index = int(Ny_time/dt)                                      # Index of the time at which Niyama number is calculated
     Cr_Ny = np.min(Dim_ny[Ny_index, :])
     Cr_Nys = np.min(Ny_s[Ny_index,:])                                # Minimum Niyama number at the time of interest
     
     indices =[]
-    indices_nim =[]
+    indices_nim =[] # Indices of the Niyama number below threshold
     threshold = T_S + 0.1*(T_L-T_S)
     tolerance = 1.0
     # print(threshold)
@@ -243,18 +243,14 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,h
                 Dim_ny_new[i,j] = 0
             else:
                 Dim_ny_new[i,j] = Dim_ny_new[i,j]
-    print(Dim_ny_new)
-
-
-
-
+    # print(Dim_ny_new)
 
     for i in range (t_dim):
         for j in range(x_dim):
             if np.absolute(temp_hist_l[i,j]- threshold) < tolerance:
                 indices.append((i,j))
                 if Dim_ny[i,j] < 3.0:
-                    indices_nim.append((i,j))
+                    indices_nim.append((i,j)) # Indices of the Niyama number below threshold
     
     
     
@@ -266,7 +262,7 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,h
     # print(Niyama_array)
     Lowest_Niyama = round(np.min(Niyama_array),2)
     Avg_Niyama = np.mean(Niyama_array)
-    print(f"Lowest Niyama Number: {Lowest_Niyama}")
+    # print(f"Lowest Niyama Number: {Lowest_Niyama}")
 
    
     if gen_graph:
@@ -276,7 +272,7 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,h
         space_coord = space_coord * dx
         time_coord = time_coord * dt 
         # Create a figure with two subplots
-        fig, (ax1) = plt.subplots(1,figsize=(14, 6))
+        fig, (ax1) = plt.subplots(1,figsize=(10, 6))
 
         # Plot the temperature history on the left subplot
         im1 = ax1.pcolormesh(space_coord, time_coord, t_hist, cmap='coolwarm', shading='auto')
@@ -286,7 +282,7 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,h
         ax1.set_xlabel('Space (mm)', fontname='Times New Roman', fontsize=16)
         
         ax1.set_ylabel('Time(Seconds)',fontname='Times New Roman', fontsize=16)
-        ax1.set_title('Temperature Variation Over Time',fontname='Times New Roman', fontsize=20)
+        ax1.set_title('Temperature Field',fontname='Times New Roman', fontsize=20)
         ax1.contour(space_coord, time_coord, t_hist, colors='red', linewidths=1.0, alpha=0.9)
 
         ax1.grid(True)
@@ -311,7 +307,7 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,h
         plt.axhline(y=T_S, color='g', linestyle='--', label='Solidus Temperature')
         plt.xlabel('Time(s)',fontname='Times New Roman', fontsize=16)
         plt.ylabel('Temperature (K)',fontname='Times New Roman', fontsize=16)
-        plt.title('Temperature Distribution Over Time at x = 7.5mm',fontname='Times New Roman', fontsize=20) 
+        plt.title('Cooling Curve @ 7.5',fontname='Times New Roman', fontsize=20) 
         plt.legend()
         plt.grid(True)
         plt.show()
@@ -324,13 +320,14 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,h
         time_coord_1 = time_coord_1 * dt
         
         # norm = colors.Normalize(vmin= np.min(Dim_ny), vmax= np.max(Dim_ny), clip=False)
+    
         if indices_nim:
-            hlt_t, hlt_x = zip(*indices_nim)
-            real_t = []
+            hlt_t, hlt_x = zip(*indices_nim) 
+            real_t = [] # 
             for index in indices_nim:
                 real_t.append(time_coord_1[index[0],index[1]])
 
-        plt.figure(figsize=(14, 6))
+        plt.figure(figsize=(10, 6))
 
         im1 =plt.pcolormesh(space_coord_1, time_coord_1, Dim_ny_new,cmap='viridis', shading='auto')
         if indices_nim:
@@ -342,7 +339,7 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,h
         plt.xscale('linear')
         plt.yscale('linear')
         plt.rcParams['figure.dpi'] = 600
-        plt.title('Evolution of Niyama below threshold',fontname='Times New Roman', fontsize=20)
+        plt.title('Evolution of Critical Niyama',fontname='Times New Roman', fontsize=20)
         # plt.contour(space_coord_1, time_coord_1, Dim_ny, colors='white', linewidths=1.0, alpha=0.9)
         plt.grid(True)
         cbar = plt.colorbar(im1)
@@ -350,9 +347,7 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,h
         cbar.set_label('Niyama Number', rotation=270, labelpad=20, fontname='Times New Roman', fontsize=16)
         plt.tight_layout()
         plt.show()
-        
-        plt.figure(figsize=(14, 6))
-
+        plt.figure(figsize=(10, 6))
         
     if gen_data:
         return t_hist
