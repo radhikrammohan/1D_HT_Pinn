@@ -16,6 +16,8 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset, RandomSampler
 
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
 # Material properties
 rho = 2300.0                     # Density of AL380 (kg/m^3)
 rho_l = 2460.0                   # Density of AL380 (kg/m^3)
@@ -42,6 +44,8 @@ alpha_m = k_m / (rho_m * cp_m)          #`Thermal diffusivity in mushy zone is t
 
 #L_fusion = 3.9e3                 # J/kg
 L_fusion = 389.0e3               # J/kg  # Latent heat of fusion of aluminum
+
+L_fusion_t = torch.tensor(L_fusion,device=device)
          # Thermal diffusivity
 
 t_surr = 500.0 
@@ -49,7 +53,7 @@ temp_init = 919.0
 T_L = 574.4 +273.0                       #  K -Liquidus Temperature (615 c) AL 380
 T_S = 497.3 +273.0                     # K- Solidus Temperature (550 C)
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
 
 def kramp(temp,v1,v2,T_L,T_s):                                      # Function to calculate thermal conductivity in Mushy Zone
         slope = (v1-v2)/(T_L-T_S)
