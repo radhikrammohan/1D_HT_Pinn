@@ -186,7 +186,7 @@ def boundary_loss(model,x,t,t_surr_t):
 
     return nn.MSELoss()(res_l,torch.zeros_like(res_l))
 
-def ic_loss(u_pred):
+def ic_loss(u_pred,temp_init):
     temp_init_tsr = torch.tensor(temp_init,device=device)
     ic = u_pred -temp_init_tsr
     return nn.MSELoss()(ic,torch.zeros_like(ic))
