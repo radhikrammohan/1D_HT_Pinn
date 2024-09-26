@@ -118,7 +118,7 @@ def pde_loss(model,x,t):
     u_x = torch.autograd.grad(u_pred, 
                                 x, 
                                 torch.ones_like(u_pred).to(device), 
-                                create_graph=True,-
+                                create_graph=True,
                                 allow_unused =True)[0] # Calculate the first space derivative
             
     u_xx = torch.autograd.grad(u_x, 
@@ -141,8 +141,10 @@ def pde_loss(model,x,t):
     alpha_T = torch.where(u_pred >= T_L_tensor, alpha_l, torch.where(u_pred<=T_S_tensor,alpha_s ,m_eff))
     # alpha_T = 1
     residual = u_t - alpha_T * u_xx
+    res_sq =  torch.square(residual)
+    resid_mean = torch.mean(res_sq)
 
-    return nn.MSELoss()(residual,torch.zeros_like(residual))
+    return resid_mean
 
 def boundary_loss(model,x,t,t_surr):
     
@@ -169,8 +171,9 @@ def boundary_loss(model,x,t,t_surr):
 
 def ic_loss(u_pred,temp_init):
     temp_init_tsr = torch.tensor(temp_init,device=device)
-    ic = u_pred -temp_init_tsr
-    return nn.MSELoss()(ic,torch.zeros_like(ic))
+    ic_mean = torch.mean(torch.square(u_pred -temp_init_tsr))
+    
+    return ic_mean
 
 def accuracy(u_pred, u_true):
     return torch.mean(torch.abs(u_pred - u_true) / u_true)
