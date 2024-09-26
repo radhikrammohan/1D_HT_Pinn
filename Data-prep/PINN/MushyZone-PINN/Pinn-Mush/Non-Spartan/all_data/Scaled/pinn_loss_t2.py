@@ -60,8 +60,10 @@ L_fusion_t = torch.tensor(L_fusion,dtype=torch.float32,device=device)
 
 # t_surr = 500.0 
 # temp_init = 919.0
-# T_L = 574.4 +273.0                       #  K -Liquidus Temperature (615 c) AL 380
-# T_S = 497.3 +273.0                     # K- Solidus Temperature (550 C)
+T_L = 574.4 +273.0                       #  K -Liquidus Temperature (615 c) AL 380
+T_S = 497.3 +273.0                     # K- Solidus Temperature (550 C)
+T_St = torch.tensor(T_S,dtype=torch.float32,device=device)
+T_Lt = torch.tensor(T_L,dtype=torch.float32,device=device)
 
 
 
@@ -122,7 +124,7 @@ def pde_loss(model,x,t,T_S,T_L):
                                 torch.ones_like(u_x).to(device), 
                                 create_graph=True,
                                 allow_unused=True,
-                                materialize_grads=True)[0] 
+                                materialize_grads=True)[0][:, 0:1]
     
     T_S_tensor = torch.tensor(T_S, dtype=torch.float32, device=device)
     T_L_tensor = torch.tensor(T_L, dtype=torch.float32, device=device)
@@ -133,30 +135,69 @@ def pde_loss(model,x,t,T_S,T_L):
     # print(u_xx.dtype)
     
     residual = torch.zeros_like(u_pred)
+    alpha_T = torch.zeros_like(u_pred)
+    k_m = torch.zeros_like(u_pred)
+    cp_m = torch.zeros_like(u_pred)
+    rho_m = torch.zeros_like(u_pred)
 
-    for i in range(len(u_pred)):
-        if u_pred[i] < T_S_tensor:
-           alpha_T = alpha_s_t
-           residual[i] = u_t[i] - (torch.mul(alpha_T , u_xx[i]))
+    
 
-        elif u_pred[i] >= T_L_tensor:
-            alpha_T = alpha_l_t
-            residual[i] = u_t[i] - (torch.mul(alpha_T , u_xx[i]))
+    alpha_s = (alpha_s_t * T_S_tensor) / T_St
+    
+    alpha_l = (alpha_l_t * T_L_tensor) / T_Lt
 
-        else:
-            k_m = kramp(u_pred[i], k_l,k_s,T_L_tensor,T_S_tensor)
-            cp_m = cp_ramp(u_pred[i], cp_l,cp_s,T_L_tensor,T_S_tensor)
-            rho_m = rho_ramp(u_pred[i], rho_l,rho_s,T_L_tensor,T_S_tensor)
-            # print(k_m.shape)
-            alpha_T = (k_m / (rho_m * (cp_m + (L_fusion_t / (T_L_tensor - T_S_tensor)))))
-            residual[i] = u_t[i] - (torch.mul(alpha_T , u_xx[i]))
-        
-        
+    
+
+    mask_solid = u_pred <= T_S_tensor
+    mask_liquid = u_pred >= T_L_tensor
+    mask_mushy = ~(mask_solid | mask_liquid)
+
+    alpha_T_solid = alpha_s
+    residual[mask_solid] = u_t[mask_solid] - (alpha_T_solid * u_xx[mask_solid])
+
+    alpha_T_liquid = alpha_l
+    residual[mask_liquid] = u_t[mask_liquid] - (alpha_T_liquid * u_xx[mask_liquid])
+
+    k_m_mushy = kramp(u_pred[mask_mushy], k_l_t, k_s_t, T_L_tensor, T_S_tensor)
+    cp_m_mushy = cp_ramp(u_pred[mask_mushy], cp_l_t, cp_s_t, T_L_tensor, T_S_tensor)
+    rho_m_mushy = rho_ramp(u_pred[mask_mushy], rho_l_t, rho_s_t, T_L_tensor, T_S_tensor)
+    
+    u1 = L_fusion_t / (T_L_tensor - T_S_tensor)
+    alpha_T_mushy = (k_m_mushy / (rho_m_mushy * (cp_m_mushy + (u1))))
+
+    residual[mask_mushy] = u_t[mask_mushy] - (alpha_T_mushy * u_xx[mask_mushy])
+
+    
+    # for i in range(len(u_pred)):
+    #     if u_pred[i] < T_S_tensor:
+    #        k_m[i] = k_s_t
+    #        cp_m[i] = cp_s_t
+    #        rho_m[i] = rho_s_t
+    #        alpha_T[i] = alpha_s_t
+    #        residual[i] = u_t[i] - (alpha_T[i] * u_xx[i])
+
+    #     elif u_pred[i] >= T_L_tensor:
+    #         k_m[i] = k_l_t
+    #         cp_m[i] = cp_l_t
+    #         rho_m[i] = rho_l_t
+    #         alpha_T[i] = alpha_l_t
+    #         residual[i] = u_t[i] - (alpha_T[i] * u_xx[i])
+
+    #     else:
+    #         k_m[i] = kramp(u_pred[i], k_l_t,k_s_t,T_L_tensor,T_S_tensor)
+    #         cp_m[i] = cp_ramp(u_pred[i], cp_l_t,cp_s_t,T_L_tensor,T_S_tensor)
+    #         rho_m[i] = rho_ramp(u_pred[i], rho_l_t,rho_s_t,T_L_tensor,T_S_tensor)
+    #         # print(k_m.shape)
+    #         alpha_T[i] = (k_m[i] / (rho_m[i] * (cp_m[i] + (L_fusion_t / (T_L_tensor - T_S_tensor)))))
+    #         residual[i] = u_t[i] - (alpha_T[i] * u_xx[i])
+
+    # # print(T_S_tensor,T_L_tensor,alpha_l_t,alpha_s_t)   
+    # # print(u_pred[:5,:],alpha_T[:5,:],residual[:5,:])   
     
     
-    res_sq =  torch.square(residual)
+    
     # print(res_sq.dtype) 
-    resid_mean = torch.mean(res_sq)
+    resid_mean = torch.mean(torch.square(residual)) 
     # print(resid_mean.dtype)
 
     return resid_mean
@@ -186,8 +227,9 @@ def boundary_loss(model,x,t,t_surr):
 
 def ic_loss(u_pred,temp_init):
     temp_init_tsr = torch.tensor(temp_init,device=device)
+   
     ic_mean = torch.mean(torch.square(u_pred -temp_init_tsr))
-    
+   
     return ic_mean
 
 def accuracy(u_pred, u_true):
