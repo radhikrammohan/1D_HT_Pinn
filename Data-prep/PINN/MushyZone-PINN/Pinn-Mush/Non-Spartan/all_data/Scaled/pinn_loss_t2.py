@@ -142,9 +142,7 @@ def pde_loss(model,x,t,T_S,T_L):
 
     
 
-    alpha_s = (alpha_s_t * T_S_tensor) / T_St
     
-    alpha_l = (alpha_l_t * T_L_tensor) / T_Lt
 
     
 
@@ -152,10 +150,10 @@ def pde_loss(model,x,t,T_S,T_L):
     mask_liquid = u_pred >= T_L_tensor
     mask_mushy = ~(mask_solid | mask_liquid)
 
-    alpha_T_solid = alpha_s
+    alpha_T_solid = alpha_s_t
     residual[mask_solid] = u_t[mask_solid] - (alpha_T_solid * u_xx[mask_solid])
 
-    alpha_T_liquid = alpha_l
+    alpha_T_liquid = alpha_l_t
     residual[mask_liquid] = u_t[mask_liquid] - (alpha_T_liquid * u_xx[mask_liquid])
 
     k_m_mushy = kramp(u_pred[mask_mushy], k_l_t, k_s_t, T_L_tensor, T_S_tensor)
@@ -163,7 +161,7 @@ def pde_loss(model,x,t,T_S,T_L):
     rho_m_mushy = rho_ramp(u_pred[mask_mushy], rho_l_t, rho_s_t, T_L_tensor, T_S_tensor)
     
     u1 = L_fusion_t / (T_L_tensor - T_S_tensor)
-    alpha_T_mushy = (k_m_mushy / (rho_m_mushy * (cp_m_mushy + (u1))))
+    alpha_T_mushy = (k_m_mushy / (rho_m_mushy * (cp_m_mushy - (u1))))
 
     residual[mask_mushy] = u_t[mask_mushy] - (alpha_T_mushy * u_xx[mask_mushy])
 
