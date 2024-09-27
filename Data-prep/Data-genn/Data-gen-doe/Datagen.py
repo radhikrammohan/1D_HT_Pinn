@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.colors as colors
+import matplotlib.colors as mcolors
+from matplotlib.colors import ListedColormap, BoundaryNorm
 
 def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,htc_r, length, gen_graph=True, gen_data=True):
     
@@ -347,12 +348,71 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,h
         cbar.set_label('Niyama Number', rotation=270, labelpad=20, fontname='Times New Roman', fontsize=16)
         plt.tight_layout()
         plt.show()
-        plt.figure(figsize=(10, 6))
         
+        dim_max = np.max(Dim_ny)
+        print
+        
+        bins = [0,3, dim_max]
+        cmap1 = plt.get_cmap('Reds')
+        cmap2 = plt.get_cmap('Blues')
+
+       
+        masked_array1 = np.ma.masked_where((Dim_ny < bins[0]) | (Dim_ny > bins[1]), Dim_ny)
+        masked_array2 = np.ma.masked_where((Dim_ny <= bins[1]) | (Dim_ny > bins[2]), Dim_ny)
+
+        
+        # Plot the first bin
+        plt.pcolormesh(space_coord_1, time_coord_1, masked_array1, cmap=cmap1, shading='auto')
+
+        # Plot the second bin
+        plt.pcolormesh(space_coord_1, time_coord_1, masked_array2, cmap=cmap2, shading='auto')
+
+        plt.xlabel('Space (mm)', fontname='Times New Roman', fontsize=16)
+        plt.ylabel('Time', fontname='Times New Roman', fontsize=16)
+        plt.title('Evolution of Critical Niyama', fontname='Times New Roman', fontsize=20)
+        plt.grid(True)
+
+        # Add colorbar with proper label
+        cbar = plt.colorbar()
+        cbar.set_label('Niyama Number', rotation=270, labelpad=20, fontname='Times New Roman', fontsize=16)
+        cbar.set_ticks(np.linspace(0, dim_max, 20))
+        plt.tight_layout()
+        plt.show()
+       
+
+       # Create a new colormap that combines both 'Blues' and 'Oranges' for the full range from 0 to 10
+        
+
+        # # Combine the two colormaps
+        # combined_cmap = ListedColormap(np.vstack((cmap1(np.linspace(0, 1, 128)), cmap2(np.linspace(0, 1, 128)))))
+
+        # # Define the boundaries to match the bins and ensure proper scaling across the full data range
+        # bounds = np.concatenate((np.linspace(0,3,128),np.linspace(3,dim_max,129)))  # Create more boundaries for smooth transitions
+        # norm = BoundaryNorm(bounds, combined_cmap.N)
+
+        # # Plotting using pcolormesh with the combined colormap
+        # plt.figure(figsize=(10, 6))
+        # plt.pcolormesh(space_coord_1, time_coord_1, Dim_ny, cmap=combined_cmap, norm=norm, shading='auto')
+
+        # plt.xlabel('Space (mm)', fontname='Times New Roman', fontsize=16)
+        # plt.ylabel('Time', fontname='Times New Roman', fontsize=16)
+        # plt.title('Evolution of Critical Niyama', fontname='Times New Roman', fontsize=20)
+        # plt.grid(True)
+
+        # # Add colorbar with proper label
+        # cbar = plt.colorbar()
+        # cbar.set_label('Niyama Number', rotation=270, labelpad=20, fontname='Times New Roman', fontsize=16)
+        # cbar.set_ticks(np.linspace(0, dim_max, 20))
+
+        # plt.tight_layout()
+        # plt.show()
+
+
+
     if gen_data:
         return t_hist
     
-  
+        
 
     
 
