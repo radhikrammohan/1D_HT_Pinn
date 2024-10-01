@@ -233,6 +233,7 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,h
     indices =[]
     indices_nim =[] # Indices of the Niyama number below threshold
     threshold = T_S + 0.1*(T_L-T_S)
+    print(threshold)
     tolerance = 1.0
     # print(threshold)
 

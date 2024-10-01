@@ -161,7 +161,7 @@ def pde_loss(model,x,t,T_S,T_L):
     rho_m_mushy = rho_ramp(u_pred[mask_mushy], rho_l_t, rho_s_t, T_L_tensor, T_S_tensor)
     
     u1 = L_fusion_t / (T_L_tensor - T_S_tensor)
-    alpha_T_mushy = (k_m_mushy / (rho_m_mushy * (cp_m_mushy - (u1))))
+    alpha_T_mushy = (k_m_mushy / (rho_m_mushy * (cp_m_mushy + (u1))))
 
     residual[mask_mushy] = u_t[mask_mushy] - (alpha_T_mushy * u_xx[mask_mushy])
 
