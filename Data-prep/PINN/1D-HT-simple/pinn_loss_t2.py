@@ -73,6 +73,8 @@ def pde_loss(model,x,t,T_S,T_L):
     
     u_pred = model(x,t).requires_grad_()
 
+    
+
     u_t = torch.autograd.grad(u_pred, t, 
                                 torch.ones_like(u_pred).to(device),
                                 create_graph=True,
@@ -92,19 +94,21 @@ def pde_loss(model,x,t,T_S,T_L):
                                 torch.ones_like(u_x).to(device), 
                                 create_graph=True,
                                 allow_unused=True,
-                                materialize_grads=True)[0][:, 0:1]
+                                )[0]
     
     T_S_tensor = torch.tensor(T_S, dtype=torch.float32, device=device)
     T_L_tensor = torch.tensor(T_L, dtype=torch.float32, device=device)
+
+    
     
     residual = u_t - alpha_t * u_xx
+   
+    
+    loss = nn.MSELoss()(residual,torch.zeros_like(residual))
     
     
-    # print(res_sq.dtype) 
-    resid_mean = torch.mean(torch.square(residual)) 
-    # print(resid_mean.dtype)
 
-    return resid_mean
+    return loss
 
 def boundary_loss(model,x,t,t_surr):
     
