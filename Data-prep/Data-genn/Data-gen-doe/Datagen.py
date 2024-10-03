@@ -165,7 +165,9 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,h
     t_hist = temp_hist_l
     p_hist = phi_history_1
 
-    t_dim,x_dim  = temp_hist_l.shape
+    t_dim,x_dim  = temperature_history_1.shape
+
+    
     # Niyama Calcualtion
 
     # print(temperature_history_1.shape)
@@ -249,7 +251,7 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,h
 
     for i in range (t_dim):
         for j in range(x_dim):
-            if np.absolute(temp_hist_l[i,j]- threshold) < tolerance:
+            if np.absolute(temperature_history_1[i,j]- threshold) < tolerance:
                 indices.append((i,j))
                 if Dim_ny[i,j] < 3.0:
                     indices_nim.append((i,j)) # Indices of the Niyama number below threshold
@@ -328,12 +330,21 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,h
             real_t = [] # 
             for index in indices_nim:
                 real_t.append(time_coord_1[index[0],index[1]])
+        
+        if indices:
+            t, x = zip(*indices) 
+            real_te = []
+            for index in indices:
+                real_te.append(time_coord_1[index[0],index[1]])
+
 
         plt.figure(figsize=(10, 6))
 
         im1 =plt.pcolormesh(space_coord_1, time_coord_1, Dim_ny_new,cmap='viridis', shading='auto')
         if indices_nim:
-            plt.scatter(hlt_x, real_t, color='red', s=20, marker='o', alpha=0.8,zorder=50, label='Heat Loss Threshold')
+            plt.scatter(hlt_x, real_t, color='red', s=20, marker='*', alpha=0.8,zorder=50, label='Heat Loss Threshold')
+        if indices:
+            plt.scatter(x, real_te, color='blue', s=20, marker='*', alpha=0.8,zorder=50, label='Niyama Number Threshold')
         # plt.set_xlim(left=0, right=length,auto=True)
         # plt.set_ylim(0, current_time)
         plt.xlabel('Space (mm)', fontname='Times New Roman', fontsize=16)
@@ -367,9 +378,10 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,h
 
         # Plot the second bin
         plt.pcolormesh(space_coord_1, time_coord_1, masked_array2, cmap=cmap2, shading='auto')
-
+        if indices:
+            plt.scatter(x, real_te, color='green', s=5, marker=',', alpha=0.8,zorder=50)
         plt.xlabel('Space (mm)', fontname='Times New Roman', fontsize=16)
-        plt.ylabel('Time', fontname='Times New Roman', fontsize=16)
+        plt.ylabel('Time (sec)', fontname='Times New Roman', fontsize=16)
         plt.title('Evolution of Critical Niyama', fontname='Times New Roman', fontsize=20)
         plt.grid(True)
 
