@@ -103,7 +103,7 @@ def pde_loss(model,x,t,T_S,T_L):
     x.requires_grad = True
     t.requires_grad = True
     
-    u_pred = model(x,t).requires_grad_()
+    u_pred = model(x,t).to(device)
 
     u_t = torch.autograd.grad(u_pred, t, 
                                 torch.ones_like(u_pred).to(device),
@@ -118,7 +118,10 @@ def pde_loss(model,x,t,T_S,T_L):
                                 torch.ones_like(u_pred).to(device), 
                                 create_graph=True,
                                 allow_unused =True)[0] # Calculate the first space derivative
-            
+
+    if u_x is None:
+        raise RuntimeError("u_x is None")
+           
     u_xx = torch.autograd.grad(u_x, 
                                 x, 
                                 torch.ones_like(u_x).to(device), 
@@ -126,37 +129,45 @@ def pde_loss(model,x,t,T_S,T_L):
                                 allow_unused=True,
                                 materialize_grads=True)[0][:, 0:1]
     
+    if u_xx is None:
+        raise RuntimeError("u_xx is None")
+
     T_S_tensor = torch.tensor(T_S, dtype=torch.float32, device=device)
     T_L_tensor = torch.tensor(T_L, dtype=torch.float32, device=device)
     
     residual = u_t - (alpha_l_t*u_xx)
     resid_mean = torch.mean(torch.square(residual)) 
     # print(resid_mean.dtype)
-
+    
     return resid_mean
 
 def boundary_loss(model,x,t,t_surr):
     
-    x.requires_grad = True
-    t.requires_grad = True
-    t_surr_t = torch.tensor(t_surr, device=device)
-    u_pred = model(x,t).requires_grad_(True)
-    u_x = torch.autograd.grad(u_pred,x, 
-                                torch.ones_like(u_pred).to(device), 
-                                create_graph=True,
-                                allow_unused =True)[0] # Calculate the first space derivative
+    # x.requires_grad = True
+    # t.requires_grad = True
+    # t_surr_t = torch.tensor(t_surr, device=device)
+    # u_pred = model(x,t).requires_grad_(True)
+    # u_x = torch.autograd.grad(u_pred,x, 
+    #                             torch.ones_like(u_pred).to(device), 
+    #                             create_graph=True,
+    #                             allow_unused =True)[0] # Calculate the first space derivative
    
-    htc =10.0
-    if u_x is None:
-        raise RuntimeError("u_x is None")
-    if u_pred is None:
-        raise RuntimeError("u_pred is None")
-    if t_surr_t is None:
-        raise RuntimeError("t_surr_t is None")
-    res_l = u_x -(htc*(u_pred-t_surr_t))
+    # htc =10.0
+    # if u_x is None:
+    #     raise RuntimeError("u_x is None")
+    # if u_pred is None:
+    #     raise RuntimeError("u_pred is None")
+    # if t_surr_t is None:
+    #     raise RuntimeError("t_surr_t is None")
+    # res_l = u_x -(htc*(u_pred-t_surr_t))
+
+    t_surr_t = torch.tensor(t_surr, device=device)
+
+    u_pred = model(x,t).to(device)
+    bc_mean = torch.mean(torch.square(u_pred - t_surr_t))
    
 
-    return nn.MSELoss()(res_l,torch.zeros_like(res_l))
+    return bc_mean
 
 def ic_loss(u_pred,temp_init):
     temp_init_tsr = torch.tensor(temp_init,device=device)
