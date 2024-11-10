@@ -13,6 +13,10 @@ import csv
 # Geometry
 
 class HT_sim():
+    # class to simulate heat transfer in a rod
+    # the class has the following attributes like material properties, length of the rod, time of simulation, number of points, initial temperature, and surrounding temperature
+    # the class has the following methods like dx_calc, dt_calc, cflcheck, step_coeff_calc, datagen, plot_temp
+    
 
     def __init__(self, length, time_end, num_points, t_surr,temp_init):
         self.length = length
@@ -111,6 +115,7 @@ class HT_sim():
         return self.temp_history_1
     
     def plot_temp(self,idx):
+        # Plot the temperature distribution over time at the midpoint
         time_ss= np.linspace(0, self.time_end, self.num_steps+1)
         dx = self.dx
         plt.figure(figsize=(10, 6))
@@ -132,6 +137,7 @@ class HT_sim():
                                                                # Update temperature
 
 def fdd(length, time_end, num_points, num_steps, scl="True"):
+    # module to create finite difference data
     x = np.linspace(0, length, num_points)
     t = np.linspace(0, time_end, num_steps)
     X, T = np.meshgrid(x, t)
@@ -145,6 +151,7 @@ def fdd(length, time_end, num_points, num_steps, scl="True"):
     return inp_fdd
 
 def quasirandom(n_samples, sampler, x_min,x_max, t_min, t_max):
+    # module to create quasi-random sampling for pde input data
     space = [(x_min, x_max), (t_min, t_max)]
     if sampler == "LHS":
         sampler = skopt.sampler.Lhs(
@@ -167,7 +174,7 @@ def quasirandom(n_samples, sampler, x_min,x_max, t_min, t_max):
     return np.array(sampler.generate(space, n_samples))
 
 def unidata(x_min, x_max, t_min, t_max, n_samples, sampler):
-
+    # module to create uniform sampling and random sampling for pde input data
     if sampler == "random":
         x = np.random.uniform(x_min, x_max, n_samples)
         t = np.random.uniform(t_min, t_max, n_samples)
@@ -184,7 +191,7 @@ def unidata(x_min, x_max, t_min, t_max, n_samples, sampler):
 
 def pdeinp(x_min, x_max, t_min, t_max, n_samples, sampler, scl="True"):
      
-    
+    # module to create PDE inputs with various sampling strategies
     # define a sampling strategy
     if sampler == "random":
         inp_pde = unidata(x_min, x_max, t_min, t_max, n_samples, sampler)
@@ -213,7 +220,7 @@ def pdeinp(x_min, x_max, t_min, t_max, n_samples, sampler, scl="True"):
     #flatten the meshgrid and return the output
 
 def icinp(length, icpts,scl="True"):
-
+    # module to create initial condition inputs
     x = np.linspace(0, length, icpts)
     t= np.zeros(len(x))
 
@@ -224,7 +231,7 @@ def icinp(length, icpts,scl="True"):
     return inp_ic
 
 def bcinp(length, time_end, bcpts, scl="True"):
-
+    # module to create boundary condition inputs
     x_l = np.zeros(bcpts)
     x_r = np.ones(bcpts)*length
 
@@ -240,10 +247,12 @@ def bcinp(length, time_end, bcpts, scl="True"):
     
 
 def scaler(data, min, max):
+    # Scale the data between 0 and 1
     scaled_data = (data-min)/(max-min)
     return scaled_data
 
 def invscaler(data, min, max):
+    # Inverse scaling to bring the data back to original scale
     invsc_data = data*(max-min) + min
     return invsc_data
 
