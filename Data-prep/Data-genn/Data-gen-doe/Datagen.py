@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.colors as colors
+import matplotlib.colors as mcolors
+from matplotlib.colors import ListedColormap, BoundaryNorm
 
 def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,htc_r, length, gen_graph=True, gen_data=True):
     
@@ -164,7 +165,9 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,h
     t_hist = temp_hist_l
     p_hist = phi_history_1
 
-    t_dim,x_dim  = temp_hist_l.shape
+    t_dim,x_dim  = temperature_history_1.shape
+
+    
     # Niyama Calcualtion
 
     # print(temperature_history_1.shape)
@@ -223,15 +226,16 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,h
     # plt.show()**
     
     
-    Ny_time = 0.90*current_time                                     # Time at which Niyama number is calculated 
+    Ny_time = 0.90 * current_time                                     # Time at which Niyama number is calculated 
 
     Ny_index = int(Ny_time/dt)                                      # Index of the time at which Niyama number is calculated
     Cr_Ny = np.min(Dim_ny[Ny_index, :])
     Cr_Nys = np.min(Ny_s[Ny_index,:])                                # Minimum Niyama number at the time of interest
     
     indices =[]
-    indices_nim =[]
+    indices_nim =[] # Indices of the Niyama number below threshold
     threshold = T_S + 0.1*(T_L-T_S)
+    print(threshold)
     tolerance = 1.0
     # print(threshold)
 
@@ -243,18 +247,14 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,h
                 Dim_ny_new[i,j] = 0
             else:
                 Dim_ny_new[i,j] = Dim_ny_new[i,j]
-    print(Dim_ny_new)
-
-
-
-
+    # print(Dim_ny_new)
 
     for i in range (t_dim):
         for j in range(x_dim):
-            if np.absolute(temp_hist_l[i,j]- threshold) < tolerance:
+            if np.absolute(temperature_history_1[i,j]- threshold) < tolerance:
                 indices.append((i,j))
                 if Dim_ny[i,j] < 3.0:
-                    indices_nim.append((i,j))
+                    indices_nim.append((i,j)) # Indices of the Niyama number below threshold
     
     
     
@@ -266,75 +266,93 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,h
     # print(Niyama_array)
     Lowest_Niyama = round(np.min(Niyama_array),2)
     Avg_Niyama = np.mean(Niyama_array)
-    print(f"Lowest Niyama Number: {Lowest_Niyama}")
+    # print(f"Lowest Niyama Number: {Lowest_Niyama}")
 
    
     if gen_graph:
         
-        # # Create a meshgrid for space and time coordinates
-        # space_coord, time_coord = np.meshgrid(np.arange(t_hist.shape[1]), np.arange(t_hist.shape[0]))
+        # Create a meshgrid for space and time coordinates
+        space_coord, time_coord = np.meshgrid(np.arange(t_hist.shape[1]), np.arange(t_hist.shape[0]))
+        space_coord = space_coord * dx
+        time_coord = time_coord * dt 
+        # Create a figure with two subplots
+        fig, (ax1) = plt.subplots(1,figsize=(10, 6))
 
-        # time_coord = time_coord * dt 
-        # # Create a figure with two subplots
-        # fig, (ax1) = plt.subplots(1,figsize=(14, 6))
-
-        # # Plot the temperature history on the left subplot
-        # im1 = ax1.pcolormesh(space_coord, time_coord, t_hist, cmap='viridis', shading='auto')
-        # ax1.set_xlabel('Space Coordinate', fontname='Times New Roman', fontsize=16)
-        # ax1.set_ylabel('Time',fontname='Times New Roman', fontsize=16)
-        # ax1.set_title('Temperature Variation Over Time',fontname='Times New Roman', fontsize=20)
-        # ax1.contour(space_coord, time_coord, t_hist, colors='red', linewidths=1.0, alpha=0.9)
-
-        # ax1.grid(True)
-        # cbar = fig.colorbar(im1, ax=ax1)
-        # cbar.ax.invert_yaxis()
-        # cbar.set_label('Temperature (K)', rotation=270, labelpad=20, fontname='Times New Roman', fontsize=16)
+        # Plot the temperature history on the left subplot
+        im1 = ax1.pcolormesh(space_coord, time_coord, t_hist, cmap='coolwarm', shading='auto')
+        ax1.set_xlim(left=0, right=length,auto=True)
+        ax1.set_ylim(0, current_time)
         
-        # # plt.contour(t_hist, colors='black', linewidths=0.5)
+        ax1.set_xlabel('Space (mm)', fontname='Times New Roman', fontsize=16)
         
-        
-        # plt.tight_layout()
-        # plt.show()
+        ax1.set_ylabel('Time(Seconds)',fontname='Times New Roman', fontsize=16)
+        ax1.set_title('Temperature Field',fontname='Times New Roman', fontsize=20)
+        ax1.contour(space_coord, time_coord, t_hist, colors='red', linewidths=1.0, alpha=0.9)
 
-        # # Plot temperature history for debugging
-        # temperature_history_1 = np.array(temperature_history)
-        # print(temperature_history_1.shape)
-        # time_ss= np.linspace(0, current_time, num_steps+1)
-        # # print(time_ss.shape)
-        # plt.figure(figsize=(10, 6))
-        # plt.plot(time_ss, midpoint_temperature_history, label='Midpoint Temperature')
-        # plt.axhline(y=T_L, color='r', linestyle='--', label='Liquidus Temperature')
-        # plt.axhline(y=T_S, color='g', linestyle='--', label='Solidus Temperature')
-        # plt.xlabel('Time(s)')
-        # plt.ylabel('Temperature (K)')
-        # plt.title('Temperature Distribution Over Time at x = 7.5mm') 
-        # plt.legend()
-        # plt.grid(True)
-        # plt.show()
+        ax1.grid(True)
+        cbar = fig.colorbar(im1, ax=ax1)
+        cbar.ax.invert_yaxis()
+        cbar.set_label('Temperature (K)', rotation=270, labelpad=20, fontname='Times New Roman', fontsize=16)
+        
+        # plt.contour(t_hist, colors='black', linewidths=0.5)
+        
+        
+        plt.tight_layout()
+        plt.show()
+
+        # Plot temperature history for debugging
+        temperature_history_1 = np.array(temperature_history)
+        print(temperature_history_1.shape)
+        time_ss= np.linspace(0, current_time, num_steps+1)
+        # print(time_ss.shape)
+        plt.figure(figsize=(10, 6))
+        plt.plot(time_ss, midpoint_temperature_history, label='Midpoint Temperature')
+        plt.axhline(y=T_L, color='r', linestyle='--', label='Liquidus Temperature')
+        plt.axhline(y=T_S, color='g', linestyle='--', label='Solidus Temperature')
+        plt.xlabel('Time(s)',fontname='Times New Roman', fontsize=16)
+        plt.ylabel('Temperature (K)',fontname='Times New Roman', fontsize=16)
+        plt.title('Cooling Curve @ 7.5',fontname='Times New Roman', fontsize=20) 
+        plt.legend()
+        plt.grid(True)
+        plt.show()
 
 
         # Plot Niyama number distribution
        
         space_coord_1, time_coord_1 = np.meshgrid(np.arange(Dim_ny.shape[1]), np.arange(Dim_ny.shape[0]))
+        # space_coord_1 = space_coord_1 * dx
         time_coord_1 = time_coord_1 * dt
+        
         # norm = colors.Normalize(vmin= np.min(Dim_ny), vmax= np.max(Dim_ny), clip=False)
+    
         if indices_nim:
-            hlt_t, hlt_x = zip(*indices_nim)
-            real_t = []
+            hlt_t, hlt_x = zip(*indices_nim) 
+            real_t = [] # 
             for index in indices_nim:
                 real_t.append(time_coord_1[index[0],index[1]])
+        
+        if indices:
+            t, x = zip(*indices) 
+            real_te = []
+            for index in indices:
+                real_te.append(time_coord_1[index[0],index[1]])
 
-        plt.figure(figsize=(14, 6))
+
+        plt.figure(figsize=(10, 6))
 
         im1 =plt.pcolormesh(space_coord_1, time_coord_1, Dim_ny_new,cmap='viridis', shading='auto')
         if indices_nim:
-            plt.scatter(hlt_x, real_t, color='red', s=20, marker='o', alpha=0.8,zorder=50, label='Heat Loss Threshold')
-        plt.xlabel('Space Coordinate', fontname='Times New Roman', fontsize=16)
+            plt.scatter(hlt_x, real_t, color='red', s=20, marker='*', alpha=0.8,zorder=50, label='Heat Loss Threshold')
+        if indices:
+            plt.scatter(x, real_te, color='blue', s=20, marker='*', alpha=0.8,zorder=50, label='Niyama Number Threshold')
+        # plt.set_xlim(left=0, right=length,auto=True)
+        # plt.set_ylim(0, current_time)
+        plt.xlabel('Space (mm)', fontname='Times New Roman', fontsize=16)
         plt.ylabel('Time',fontname='Times New Roman', fontsize=16)
         plt.xscale('linear')
         plt.yscale('linear')
         plt.rcParams['figure.dpi'] = 600
-        plt.title('Niyama Number Distribution Over Time',fontname='Times New Roman', fontsize=20)
+        plt.title('Evolution of Critical Niyama',fontname='Times New Roman', fontsize=20)
         # plt.contour(space_coord_1, time_coord_1, Dim_ny, colors='white', linewidths=1.0, alpha=0.9)
         plt.grid(True)
         cbar = plt.colorbar(im1)
@@ -343,13 +361,71 @@ def sim1d(rho_l, rho_s, k_l, k_s, cp_l, cp_s,t_surr, L_fusion, temp_init,htc_l,h
         plt.tight_layout()
         plt.show()
         
-        plt.figure(figsize=(14, 6))
+        dim_max = np.max(Dim_ny)
+        print
+        
+        bins = [0,3, dim_max]
+        cmap1 = plt.get_cmap('Reds')
+        cmap2 = plt.get_cmap('Blues')
+
+       
+        masked_array1 = np.ma.masked_where((Dim_ny < bins[0]) | (Dim_ny > bins[1]), Dim_ny)
+        masked_array2 = np.ma.masked_where((Dim_ny <= bins[1]) | (Dim_ny > bins[2]), Dim_ny)
 
         
+        # Plot the first bin
+        plt.pcolormesh(space_coord_1, time_coord_1, masked_array1, cmap=cmap1, shading='auto')
+
+        # Plot the second bin
+        plt.pcolormesh(space_coord_1, time_coord_1, masked_array2, cmap=cmap2, shading='auto')
+        if indices:
+            plt.scatter(x, real_te, color='green', s=5, marker=',', alpha=0.8,zorder=50)
+        plt.xlabel('Space (mm)', fontname='Times New Roman', fontsize=16)
+        plt.ylabel('Time (sec)', fontname='Times New Roman', fontsize=16)
+        plt.title('Evolution of Critical Niyama', fontname='Times New Roman', fontsize=20)
+        plt.grid(True)
+
+        # Add colorbar with proper label
+        cbar = plt.colorbar()
+        cbar.set_label('Niyama Number', rotation=270, labelpad=20, fontname='Times New Roman', fontsize=16)
+        cbar.set_ticks(np.linspace(0, dim_max, 20))
+        plt.tight_layout()
+        plt.show()
+       
+
+       # Create a new colormap that combines both 'Blues' and 'Oranges' for the full range from 0 to 10
+        
+
+        # # Combine the two colormaps
+        # combined_cmap = ListedColormap(np.vstack((cmap1(np.linspace(0, 1, 128)), cmap2(np.linspace(0, 1, 128)))))
+
+        # # Define the boundaries to match the bins and ensure proper scaling across the full data range
+        # bounds = np.concatenate((np.linspace(0,3,128),np.linspace(3,dim_max,129)))  # Create more boundaries for smooth transitions
+        # norm = BoundaryNorm(bounds, combined_cmap.N)
+
+        # # Plotting using pcolormesh with the combined colormap
+        # plt.figure(figsize=(10, 6))
+        # plt.pcolormesh(space_coord_1, time_coord_1, Dim_ny, cmap=combined_cmap, norm=norm, shading='auto')
+
+        # plt.xlabel('Space (mm)', fontname='Times New Roman', fontsize=16)
+        # plt.ylabel('Time', fontname='Times New Roman', fontsize=16)
+        # plt.title('Evolution of Critical Niyama', fontname='Times New Roman', fontsize=20)
+        # plt.grid(True)
+
+        # # Add colorbar with proper label
+        # cbar = plt.colorbar()
+        # cbar.set_label('Niyama Number', rotation=270, labelpad=20, fontname='Times New Roman', fontsize=16)
+        # cbar.set_ticks(np.linspace(0, dim_max, 20))
+
+        # plt.tight_layout()
+        # plt.show()
+
+
+
     if gen_data:
         return t_hist
     
-  
+        
 
     
 
