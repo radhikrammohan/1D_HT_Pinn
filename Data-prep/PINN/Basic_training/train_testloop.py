@@ -30,7 +30,8 @@ def training_loop(epochs, model, \
     T_lt = temp_var["T_lt"]
     t_surrt = temp_var["t_surrt"]
     temp_init_t = temp_var["temp_init_t"]
-
+    model.to(device)  # Move the model to the GPU
+    
     for epoch in range(epochs):
         model.train()  # Set the model to training mode
         train_loss = 0  # Initialize the training loss for this epoch
@@ -46,45 +47,43 @@ def training_loop(epochs, model, \
             
             # Extract inputs from each batch
             inputs, temp_inp = batch
-            inputs, temp_inp = inputs.to(device), temp_inp.to(device)
-
             inputs_pde = batch_pde
-            inputs_pde = inputs_pde.to(device)
-            # print(inputs_pde.shape)
-
             inputs_init = batch_init
-            inputs_init = inputs_init.to(device)
-
             inputs_left = batch_left
-            inputs_left = inputs_left.to(device)
-
             inputs_right = batch_right
+
+            inputs, temp_inp = inputs.to(device), temp_inp.to(device)
+            inputs_pde = inputs_pde.to(device)
+            inputs_init = inputs_init.to(device)
+            inputs_left = inputs_left.to(device)
             inputs_right = inputs_right.to(device)
             
-            optimizer.zero_grad(set_to_none=True)  # Zero the gradients before backpropagation
+            
+            optimizer.zero_grad()  # Zero the gradients before backpropagation
             
             # Forward pass for data prediction
-            u_pred_d = model(inputs[:, 0].unsqueeze(1), inputs[:, 1].unsqueeze(1)).to(device)
+            u_pred_d = model(inputs[:, 0].unsqueeze(1), inputs[:, 1].unsqueeze(1))
+            data_loss = loss_fn_data(u_pred_d, temp_inp)  # Data loss
             
             # Forward pass for initial condition prediction
-            u_initl = model(inputs_init[:, 0].unsqueeze(1), inputs_init[:, 1].unsqueeze(1)).to(device)
+            u_initl = model(inputs_init[:, 0].unsqueeze(1), inputs_init[:, 1].unsqueeze(1))
+            init_loss = ic_loss(u_initl, temp_init_t)  # Initial condition loss
             
             # Forward pass for boundary conditions
-            u_left = model(inputs_left[:, 0].unsqueeze(1), inputs_left[:, 1].unsqueeze(1)).to(device)
-            u_right = model(inputs_right[:, 0].unsqueeze(1), inputs_right[:, 1].unsqueeze(1)).to(device)
-            
-            # Calculate individual losses
-            data_loss = loss_fn_data(u_pred_d, temp_inp)  # Data loss
-            phy_loss = pde_loss(model, inputs_pde[:, 0].unsqueeze(1), inputs_pde[:, 1].unsqueeze(1), T_st, T_lt)  # PDE loss
-            init_loss = ic_loss(u_initl, temp_init_t)  # Initial condition loss
+            u_left = model(inputs_left[:, 0].unsqueeze(1), inputs_left[:, 1].unsqueeze(1))
+            u_right = model(inputs_right[:, 0].unsqueeze(1), inputs_right[:, 1].unsqueeze(1))
             
             # Boundary condition loss (left and right)
             bc_loss_left = boundary_loss(model, inputs_left[:, 0].unsqueeze(1), inputs_left[:, 1].unsqueeze(1), t_surrt)
             bc_loss_right = boundary_loss(model, inputs_right[:, 0].unsqueeze(1), inputs_right[:, 1].unsqueeze(1), t_surrt)
             bc_loss = bc_loss_left + bc_loss_right
+            # Calculate individual losses
             
+            phy_loss = pde_loss(model, inputs_pde[:, 0].unsqueeze(1), inputs_pde[:, 1].unsqueeze(1), T_st, T_lt)  # PDE loss
+           
+                      
             # Define weights for the different losses
-            w0, w1, w2, w3 = 1, 1, 1, 1
+            w0, w1, w2, w3 = 1, 0, 10, 10
             # Calculate total loss
             loss = w0 * data_loss + w1 * phy_loss + w2 * init_loss + w3 * bc_loss
             
@@ -115,6 +114,7 @@ def training_loop(epochs, model, \
         for batch in test_dataloader:
             inputs, temp_inp = batch
             inputs, temp_inp = inputs.to(device), temp_inp.to(device)
+            model.to(device)
             u_pred = model(inputs[:, 0].unsqueeze(1), inputs[:, 1].unsqueeze(1))
             data_loss_t = loss_fn_data(u_pred, temp_inp)
             loss = data_loss_t

@@ -12,206 +12,135 @@ import csv
 
 # Geometry
 
+class HT_sim():
 
-# Material properties
-rho = 2300.0                     # Density of AL380 (kg/m^3)
-rho_l = 2460.0                   # Density of AL380 (kg/m^3)
-rho_s = 2710.0                    # Density of AL380 (kg/m^3)
-rho_m = (rho_l + rho_s )/2       # Desnity in mushy zone is taken as average of liquid and solid density
+    def __init__(self, length, time_end, num_points, t_surr,temp_init):
+        self.length = length
+        self.time_end = time_end
+        self.num_points = num_points
+        self.t_surr = t_surr
+        self.temp_init = temp_init
+        self.dm = 60.0e-3 
 
-k = 104.0                       # W/m-K
-k_l = k                       # W/m-K
-k_s = 96.2                    # W/m-K
-k_m =  (k_l+k_s)/2                     # W/m-K
-k_mo = 41.5
+        # Material properties
+        self.rho = 2300.0                     # Density of AL380 (kg/m^3)
+        self.rho_l = 2460.0                   # Density of AL380 (kg/m^3)
+        self.rho_s = 2710.0                    # Density of AL380 (kg/m^3)
+        self.rho_m = (self.rho_l + self.rho_s )/2       # Desnity in mushy zone is taken as average of liquid and solid density
+
+        self.k = 104.0                       # W/m-K
+        self.k_l = self.k                       # W/m-K
+        self.k_s = 96.2                    # W/m-K
+        self.k_m =  (self.k_l+self.k_s)/2                     # W/m-K
+        self.k_mo = 41.5
+
+        self.cp = 1245.3                      # Specific heat of aluminum (J/kg-K)
+        self.cp_l = self.cp                      # Specific heat of aluminum (J/kg-K)
+        self.cp_s = 963.0                 # Specific heat of aluminum (J/kg-K)
+        self.cp_m =  (self.cp_l+self.cp_s)/2                 # Specific heat of mushy zone is taken as average of liquid and solid specific heat
+
+        self.alpha_l = self.k_l / (self.rho_l * self.cp_l)
+        self.alpha_s = self.k_s / (self.rho_s*self.cp_s)
+        self.alpha_m = self.k_m / (self.rho_m * self.cp_m)          #`Thermal diffusivity in mushy zone is taken as average of liquid and solid thermal diffusivity`
+
+        self.L_fusion = 389.0e3               # J/kg  # Latent heat of fusion of aluminum
+        self.T_L = 574.4 +273.0                       #  K -Liquidus Temperature (615 c) AL 380
+        self.T_S = 497.3 +273.0                     # K- Solidus Temperature (550 C)
+        self.m_eff =(self.k_m/(self.rho_m*(self.cp_m + (self.L_fusion/(self.T_L-self.T_S)))))
+
+        # sim field generation
+        self.tempfield = np.full(self.num_points, self.temp_init)            # Initial temperature of the rod with ghost points at both ends
+                         # Initial temperature of the rod
+
+                                # Index of the midpoint
+                  # List to store temperature at midpoint over time
+                                                                   # die thickness in m
+        # Calculate dx,dt, and step_coeff
+        self.dx = self.dx_calc(self.length, self.num_points)
+        self.dt = self.dt_calc(self.dx, self.alpha_l, self.alpha_s, self.alpha_m)
+        self.step_coeff = self.step_coeff_calc(self.dt, self.dx)
+        self.num_steps = round(self.time_end/self.dt)
 
 
-cp = 1245.3                      # Specific heat of aluminum (J/kg-K)
-cp_l = cp                      # Specific heat of aluminum (J/kg-K)
-cp_s = 963.0                 # Specific heat of aluminum (J/kg-K)
-cp_m =  (cp_l+cp_s)/2                 # Specific heat of mushy zone is taken as average of liquid and solid specific heat
-# cp_m = cp
-           # Thermal diffusivity
-alpha_l = k_l / (rho_l * cp_l) 
-alpha_s = k_s / (rho_s*cp_s)
-alpha_m = k_m / (rho_m * cp_m)          #`Thermal diffusivity in mushy zone is taken as average of liquid and solid thermal diffusivity`
+    
 
-
-#L_fusion = 3.9e3                 # J/kg
-L_fusion = 389.0e3               # J/kg  # Latent heat of fusion of aluminum
-         # Thermal diffusivity
-
-
-T_L = 574.4 +273.0                       #  K -Liquidus Temperature (615 c) AL 380
-T_S = 497.3 +273.0                     # K- Solidus Temperature (550 C)
-m_eff =(k_m/(rho_m*(cp_m + (L_fusion/(T_L-T_S)))))
-# print (f"alpha_l = {alpha_l}, alpha_s = {alpha_s}, m_eff = {m_eff}")
-
-# htc = 10.0                   # W/m^2-K
-# q = htc*(919.0-723.0)
-# q = 10000.0
-
-
-
-
-
-
-                               # Surrounding temperature in K
-# t_surr = h()
-
-
-
-def kramp(temp,v1,v2,T_L,T_s):                                      # Function to calculate thermal conductivity in Mushy Zone
-        slope = (v1-v2)/(T_L-T_S)
-        if temp > T_L:
-            k_m = k_l
-        elif temp < T_S:
-            k_m = k_s
+    def dx_calc(self,length, num_points):
+        dx = length / (num_points - 1)
+        return dx
+    
+    def dt_calc(self,dx, alpha_l, alpha_s, alpha_m):
+        maxi = max(alpha_s,alpha_l,alpha_m)
+        dt = abs(0.5*((dx**2) /maxi))
+        return dt
+    def cflcheck(self,dx, alpha_l, alpha_s, alpha_m):
+        cfl = 0.5 *(dx**2/max(alpha_l,alpha_s,alpha_m))
+        if cfl > 1:
+            print("CFL condition not satisfied")
+            sys.exit()
         else:
-            k_m = k_s + slope*(temp-T_S)
-        return k_m
-
-def cp_ramp(temp,v1,v2,T_L,T_s):                                    # Function to calculate specific heat capacity in Mushy Zone
-    slope = (v1-v2)/(T_L-T_S)
-    if temp > T_L:
-        cp_m = cp_l
-    elif temp < T_S:
-        cp_m = cp_s
-    else:
-        cp_m = cp_s + slope*(temp-T_S)
-    return cp_m
-
-def rho_ramp(temp,v1,v2,T_L,T_s):                                       # Function to calculate density in Mushy Zone
-    slope = (v1-v2)/(T_L-T_S)
-    if temp > T_L:
-        rho_m = rho_l
-    elif temp < T_S:
-        rho_m = rho_s
-    else:
-        rho_m = rho_s + slope*(temp-T_S)
-    return rho_m
-
-def datagen(temp_init, t_surr, numpoints, len, time_end):
-
-    # spatial discretization
-
-    num_points = numpoints                        # Number of spatial points
-    dx = len / (num_points - 1)         # Distance between two spatial points
-    print('dx is',dx)
-
-    # Time Discretization  
-    # 
-    time_end = time_end        # seconds                         
-    maxi = max(alpha_s,alpha_l,alpha_m)
-    dt = abs(0.5*((dx**2) /maxi)) 
-
-    print('dt is ',dt)
-    num_steps = round(time_end/dt)
-    print('num_steps is',num_steps)
-
-    # Stability Condition Checking
-    cfl = 0.5 *(dx**2/max(alpha_l,alpha_s,alpha_m))
-    print('cfl is',cfl)
-
-    time_steps = np.linspace(0, time_end, num_steps + 1)
-    step_coeff = dt / (dx ** 2)
-
-    if dt <= cfl:
-        print('stability criteria satisfied')
-    else:
-        print('stability criteria not satisfied')
-        sys.exit()
-    
-    # temp field init
-
-    temp_in = temp_init  # This can be in function calls
-    # Initial temperature and phase fields
-    temperature = np.full(num_points+2, temp_in)            # Initial temperature of the rod with ghost points at both ends
-    # phase = np.zeros(num_points+2)*0.0                    # Initial phase of the rod with ghost points at both ends
-
-    # Set boundary conditions
-    # temperature[-1] = 919.0 
-    # phase[-1] = 1.0
-
-    # temperature[0] = 919.0 #(40 C)
-    # phase[0] = 1.0
-
-    # Store initial state in history
-    temperature_history = [temperature.copy()]    # List to store temperature at each time step
-    # phi_history = [phase.copy()]                    # List to store phase at each time step
-    temp_int = temperature.copy()                 # Initial temperature of the rod
-    # print(temperature_history,phi_history)
-    # Array to store temperature at midpoint over time
-    midpoint_index = num_points // 2                          # Index of the midpoint 
-
-    midpoint_temperature_history = [temperature[midpoint_index]]            # List to store temperature at midpoint over time
-    dm = 60.0e-3                                                            # die thickness in m
-
-    # r_m =  (k_mo / dm) + (1/htc)
-    
-    t_surr = t_surr        
-    
-    
-    
-    
-    for m in range(1, num_steps+1):                                                                            # time loop
-        # htc = 10.0                   # htc of Still air in W/m^2-K
-        # q1 = htc*(temp_int[0]-t_surr)   # Heat flux at the left boundary 
+            print("CFL condition satisfied")
         
-        # print(f"q1 is {q1}")
-        temperature[0] = t_surr # Update boundary condition temperature
+        return cfl
+    def step_coeff_calc(self,dt, dx):
+        step_coeff = dt / (dx ** 2)
+        return step_coeff
+
+
+    def datagen(self):
+
+        tempfield = self.tempfield.copy() 
+       
+        temp_int = self.tempfield.copy()
+        self.temphist = [tempfield.copy()]
         
-        # q2 = htc*(temp_int[-1]-t_surr)                   # Heat flux at the right boundary
-        temperature[-1] = t_surr  # Update boundary condition temperature
+        for m in range(1, self.num_steps+1):                                                                            # time loop
+            
+            tempfield[0] = self.t_surr
+            tempfield[-1] = self.t_surr
+
+            for n in range(1,self.num_points-1):              # space loop, adjusted range
+                tempfield[n] += ((self.alpha_l * self.step_coeff) * (temp_int[n+1] - (2.0 * temp_int[n]) + temp_int[n-1]))
+                # phase[n] = 0
+                                                                            # Update temperature
+            temp_int = tempfield.copy()                                                                  # Update last time step temperature
+            self.temphist.append(tempfield.copy())                                                  # Append the temperature history to add ghost points
+                                            # Store midpoint temperature
         
-        for n in range(1,num_points+1):              # space loop, adjusted range
+        self.temp_history_1 = np.array(self.temphist)
         
-            temperature[n] += ((alpha_l * step_coeff) * (temp_int[n+1] - (2.0 * temp_int[n]) + temp_int[n-1]))
-            # phase[n] = 0
-             
-          
-        temperature = temperature.copy()                                                                # Update temperature
-        # phase = phase.copy()                                                                            # Update phase
-        temp_int = temperature.copy()                                                                  # Update last time step temperature
-        temperature_history.append(temperature.copy())                                                  # Append the temperature history to add ghost points
-        # phi_history.append(phase.copy())                                                                # Append the phase history to add ghost points
-        midpoint_temperature_history.append(temperature[midpoint_index])                                # Store midpoint temperature
-        
+        return self.temp_history_1
     
-    # print(f"Step {m}, Temperature: {temperature}")
+    def plot_temp(self,idx):
+        time_ss= np.linspace(0, self.time_end, self.num_steps+1)
+        dx = self.dx
+        plt.figure(figsize=(10, 6))
+        plt.plot(time_ss, self.temp_history_1[:,idx], label='Midpoint Temperature')
+        plt.axhline(y=self.T_L, color='r', linestyle='--', label='Liquidus Temperature')
+        plt.axhline(y=self.T_S, color='g', linestyle='--', label='Solidus Temperature')
+        plt.xlabel('Time(s)')
+        plt.ylabel('Temperature (K)')
+        plt.title(f'Temperature Distribution Over Time at x = {idx*dx*1000:.2f} mm') 
+        plt.legend()
+        plt.show()
+
+ 
+
+
+
     
-
-
-# print(midpoint_temperature_history)
-#print(phi_history)
-
-
-
-# Plot temperature history for debugging
-    temperature_history_1 = np.array(temperature_history)
-    print(temperature_history_1.shape)
-    time_ss= np.linspace(0, time_end, num_steps+1)
-    # print(time_ss.shape)
-    plt.figure(figsize=(10, 6))
-    plt.plot(time_ss, midpoint_temperature_history, label='Midpoint Temperature')
-    plt.axhline(y=T_L, color='r', linestyle='--', label='Liquidus Temperature')
-    plt.axhline(y=T_S, color='g', linestyle='--', label='Solidus Temperature')
-    plt.xlabel('Time(s)')
-    plt.ylabel('Temperature (K)')
-    plt.title('Temperature Distribution Over Time at x = 7.5mm') 
-    plt.legend()
-    plt.show()
-
-    return temperature_history_1
 
                                                                # Update temperature
 
-def fdd(length, time_end, num_points, num_steps):
+def fdd(length, time_end, num_points, num_steps, scl="True"):
     x = np.linspace(0, length, num_points)
     t = np.linspace(0, time_end, num_steps)
     X, T = np.meshgrid(x, t)
     x = X.flatten()
     t = T.flatten()
+
+    if scl == "True":
+        x = scaler(x, 0, length)
+        t = scaler(t, 0, time_end)
     inp_fdd = np.column_stack((x, t))
     return inp_fdd
 
@@ -253,7 +182,7 @@ def unidata(x_min, x_max, t_min, t_max, n_samples, sampler):
 
 
 
-def pdeinp(x_min, x_max, t_min, t_max, n_samples, sampler):
+def pdeinp(x_min, x_max, t_min, t_max, n_samples, sampler, scl="True"):
      
     
     # define a sampling strategy
@@ -271,6 +200,10 @@ def pdeinp(x_min, x_max, t_min, t_max, n_samples, sampler):
         inp_pde = quasirandom(n_samples, "Sobol", x_min, x_max, t_min, t_max)
     else:
         raise ValueError("Invalid sampler specified. Choose from 'random', 'uniform', 'LHS', 'Halton', 'Hammersley', 'Sobol'.")
+    if scl=="True":
+        inp_pde[:,0] = scaler(inp_pde[:,0], x_min, x_max)
+        inp_pde[:,1] = scaler(inp_pde[:,1], t_min, t_max)
+
     return inp_pde
 
     #sample the data between input and out
@@ -279,20 +212,38 @@ def pdeinp(x_min, x_max, t_min, t_max, n_samples, sampler):
 
     #flatten the meshgrid and return the output
 
-def icinp(length, icpts):
+def icinp(length, icpts,scl="True"):
 
     x = np.linspace(0, length, icpts)
     t= np.zeros(len(x))
+
+    if scl == "True":
+        x = scaler(x, 0, length)
+        
     inp_ic = np.column_stack((x, t))
     return inp_ic
 
-def bcinp(length, time_end, bcpts):
+def bcinp(length, time_end, bcpts, scl="True"):
 
     x_l = np.zeros(bcpts)
     x_r = np.ones(bcpts)*length
 
     t = np.linspace(0, time_end, bcpts)
+
+    if scl == "True":
+        x_l = scaler(x_l, 0, length)
+        x_r = scaler(x_r, 0, length)
+        t = scaler(t, 0, time_end)
     inp_bcl = np.column_stack((x_l, t))
     inp_bcr = np.column_stack((x_r, t))
     return inp_bcl, inp_bcr
     
+
+def scaler(data, min, max):
+    scaled_data = (data-min)/(max-min)
+    return scaled_data
+
+def invscaler(data, min, max):
+    invsc_data = data*(max-min) + min
+    return invsc_data
+

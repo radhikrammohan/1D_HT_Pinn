@@ -46,20 +46,20 @@ cp_s_t = torch.tensor(cp_s,dtype=torch.float32,device=device)
            # Thermal diffusivity
 alpha_l = k_l / (rho_l * cp_l) 
 alpha_l_t = torch.tensor(alpha_l,dtype=torch.float32,device=device)
-alpha_s = k_s / (rho_s*cp_s)
-alpha_s_t = torch.tensor(alpha_s,dtype=torch.float32,device=device)
+# alpha_s = k_s / (rho_s*cp_s)
+# alpha_s_t = torch.tensor(alpha_s,dtype=torch.float32,device=device)
 
-# alpha_m = k_m / (rho_m * cp_m)          #`Thermal diffusivity in mushy zone is taken as average of liquid and solid thermal diffusivity`
+# # alpha_m = k_m / (rho_m * cp_m)          #`Thermal diffusivity in mushy zone is taken as average of liquid and solid thermal diffusivity`
 
 
-#L_fusion = 3.9e3                 # J/kg
-L_fusion = 389.0e3               # J/kg  # Latent heat of fusion of aluminum
+# #L_fusion = 3.9e3                 # J/kg
+# L_fusion = 389.0e3               # J/kg  # Latent heat of fusion of aluminum
 
-L_fusion_t = torch.tensor(L_fusion,dtype=torch.float32,device=device)
-         # Thermal diffusivity
+# L_fusion_t = torch.tensor(L_fusion,dtype=torch.float32,device=device)
+#          # Thermal diffusivity
 
 # t_surr = 500.0 
-# temp_init = 919.0
+temp_init = 919.0
 T_L = 574.4 +273.0                       #  K -Liquidus Temperature (615 c) AL 380
 T_S = 497.3 +273.0                     # K- Solidus Temperature (550 C)
 T_St = torch.tensor(T_S,dtype=torch.float32,device=device)
@@ -136,6 +136,7 @@ def pde_loss(model,x,t,T_S,T_L):
     T_L_tensor = torch.tensor(T_L, dtype=torch.float32, device=device)
     
     residual = u_t - (alpha_l_t*u_xx)
+   
     resid_mean = torch.mean(torch.square(residual)) 
     # print(resid_mean.dtype)
     
