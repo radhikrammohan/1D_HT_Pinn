@@ -30,6 +30,7 @@ def training_loop(epochs, model, \
     T_lt = temp_var["T_lt"]
     t_surrt = temp_var["t_surrt"]
     temp_init_t = temp_var["temp_init_t"]
+    print(temp_init_t)
     model.to(device)  # Move the model to the GPU
     
     for epoch in range(epochs):

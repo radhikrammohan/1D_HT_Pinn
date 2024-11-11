@@ -174,7 +174,7 @@ def ic_loss(u_pred,temp_init):
     temp_init_tsr = torch.tensor(temp_init,device=device)
    
     ic_mean = torch.mean(torch.square(u_pred -temp_init_tsr))
-   
+    print(ic_mean)
     return ic_mean
 
 def accuracy(u_pred, u_true):
