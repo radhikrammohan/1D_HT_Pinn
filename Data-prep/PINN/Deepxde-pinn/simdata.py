@@ -128,14 +128,6 @@ class HT_sim():
         plt.legend()
         plt.show()
 
- 
-
-
-
-    
-
-                                                               # Update temperature
-
 def fdd(length, time_end, num_points, num_steps, scl="True"):
     # module to create finite difference data
     x = np.linspace(0, length, num_points)

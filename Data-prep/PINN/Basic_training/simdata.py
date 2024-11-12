@@ -129,24 +129,20 @@ class HT_sim():
         plt.show()
 
  
-
-
-
-    
-
-                                                               # Update temperature
+                                                             # Update temperature
 
 def fdd(length, time_end, num_points, num_steps, scl="True"):
     # module to create finite difference data
     x = np.linspace(0, length, num_points)
+   
     t = np.linspace(0, time_end, num_steps)
     X, T = np.meshgrid(x, t)
     x = X.flatten()
     t = T.flatten()
-
-    if scl == "True":
-        x = scaler(x, 0, length)
-        t = scaler(t, 0, time_end)
+    print(x)
+    # if scl == "True":
+    #     x = scaler(x, 0, length)
+    #     t = scaler(t, 0, time_end)
     inp_fdd = np.column_stack((x, t))
     return inp_fdd
 

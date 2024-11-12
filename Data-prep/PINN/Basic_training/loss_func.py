@@ -135,7 +135,7 @@ def pde_loss(model,x,t,T_S,T_L):
     T_S_tensor = torch.tensor(T_S, dtype=torch.float32, device=device)
     T_L_tensor = torch.tensor(T_L, dtype=torch.float32, device=device)
     
-    residual = u_t - (alpha_l_t*u_xx)
+    residual = u_t - (u_xx)
    
     resid_mean = torch.mean(torch.square(residual)) 
     # print(resid_mean.dtype)
@@ -174,7 +174,7 @@ def ic_loss(u_pred,temp_init):
     temp_init_tsr = torch.tensor(temp_init,device=device)
    
     ic_mean = torch.mean(torch.square(u_pred -temp_init_tsr))
-    print(ic_mean)
+    
     return ic_mean
 
 def accuracy(u_pred, u_true):

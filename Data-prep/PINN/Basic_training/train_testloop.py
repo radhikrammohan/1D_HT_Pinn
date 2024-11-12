@@ -84,7 +84,7 @@ def training_loop(epochs, model, \
            
                       
             # Define weights for the different losses
-            w0, w1, w2, w3 = 1, 0, 10, 10
+            w0, w1, w2, w3 = 1, 1, 1, 1
             # Calculate total loss
             loss = w0 * data_loss + w1 * phy_loss + w2 * init_loss + w3 * bc_loss
             
