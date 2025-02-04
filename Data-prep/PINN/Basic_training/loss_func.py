@@ -124,7 +124,7 @@ def pde_loss(model,x,t,T_S,T_L):
            
     u_xx = torch.autograd.grad(u_x, 
                                 x, 
-                                torch.ones_like(u_x).to(device), 
+                                torch.ones_like(u_x), 
                                 create_graph=True,
                                 allow_unused=True,
                                 materialize_grads=True)[0][:, 0:1]
@@ -132,8 +132,8 @@ def pde_loss(model,x,t,T_S,T_L):
     if u_xx is None:
         raise RuntimeError("u_xx is None")
 
-    T_S_tensor = torch.tensor(T_S, dtype=torch.float32, device=device)
-    T_L_tensor = torch.tensor(T_L, dtype=torch.float32, device=device)
+    T_S_tensor = T_S.clone().detach().to(device)
+    T_L_tensor = T_L.clone().detach().to(device)
     
     residual = u_t - (u_xx)
    
@@ -162,7 +162,7 @@ def boundary_loss(model,x,t,t_surr):
     #     raise RuntimeError("t_surr_t is None")
     # res_l = u_x -(htc*(u_pred-t_surr_t))
 
-    t_surr_t = torch.tensor(t_surr, device=device)
+    t_surr_t = t_surr.clone().detach().to(device)
 
     u_pred = model(x,t).to(device)
     bc_mean = torch.mean(torch.square(u_pred - t_surr_t))
@@ -171,7 +171,7 @@ def boundary_loss(model,x,t,t_surr):
     return bc_mean
 
 def ic_loss(u_pred,temp_init):
-    temp_init_tsr = torch.tensor(temp_init,device=device)
+    temp_init_tsr = temp_init.clone().detach().to(device)
    
     ic_mean = torch.mean(torch.square(u_pred -temp_init_tsr))
     
