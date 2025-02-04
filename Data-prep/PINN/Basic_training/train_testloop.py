@@ -1,3 +1,4 @@
+import time
 
 import torch
 import torch.nn as nn
@@ -30,6 +31,7 @@ def training_loop(epochs, model, \
     T_lt = temp_var["T_lt"]
     t_surrt = temp_var["t_surrt"]
     temp_init_t = temp_var["temp_init_t"]
+    print(temp_init_t)
     model.to(device)  # Move the model to the GPU
     
     for epoch in range(epochs):
@@ -52,13 +54,13 @@ def training_loop(epochs, model, \
             inputs_left = batch_left
             inputs_right = batch_right
 
-            inputs, temp_inp = inputs.to(device), temp_inp.to(device)
-            inputs_pde = inputs_pde.to(device)
-            inputs_init = inputs_init.to(device)
-            inputs_left = inputs_left.to(device)
-            inputs_right = inputs_right.to(device)
+            inputs, temp_inp = inputs.to(device), temp_inp
+            inputs_pde = inputs_pde
+            inputs_init = inputs_init
+            inputs_left = inputs_left
+            inputs_right = inputs_right
             
-            
+            t0 = time.perf_counter()
             optimizer.zero_grad()  # Zero the gradients before backpropagation
             
             # Forward pass for data prediction
@@ -78,12 +80,12 @@ def training_loop(epochs, model, \
             bc_loss_right = boundary_loss(model, inputs_right[:, 0].unsqueeze(1), inputs_right[:, 1].unsqueeze(1), t_surrt)
             bc_loss = bc_loss_left + bc_loss_right
             # Calculate individual losses
-            
-            phy_loss = pde_loss(model, inputs_pde[:, 0].unsqueeze(1), inputs_pde[:, 1].unsqueeze(1), T_st, T_lt)  # PDE loss
            
+            phy_loss = pde_loss(model, inputs_pde[:, 0].unsqueeze(1), inputs_pde[:, 1].unsqueeze(1), T_st, T_lt)  # PDE loss
+          
                       
             # Define weights for the different losses
-            w0, w1, w2, w3 = 1, 0, 10, 10
+            w0, w1, w2, w3 = 1, 1, 1, 1
             # Calculate total loss
             loss = w0 * data_loss + w1 * phy_loss + w2 * init_loss + w3 * bc_loss
             
@@ -113,8 +115,8 @@ def training_loop(epochs, model, \
         # Evaluate on test data without gradient calculation
         for batch in test_dataloader:
             inputs, temp_inp = batch
-            inputs, temp_inp = inputs.to(device), temp_inp.to(device)
-            model.to(device)
+            inputs, temp_inp = inputs, temp_inp
+            model
             u_pred = model(inputs[:, 0].unsqueeze(1), inputs[:, 1].unsqueeze(1))
             data_loss_t = loss_fn_data(u_pred, temp_inp)
             loss = data_loss_t
