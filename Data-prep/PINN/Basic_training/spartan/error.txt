@@ -1,0 +1,87 @@
+Lmod has detected the following error: The following module(s) are unknown:
+"python/3.10"
+
+Please check the spelling or version number. Also try "module spider ..."
+It is also possible your cache file is out-of-date; it may help to try:
+  $ module --ignore_cache load "python/3.10"
+
+Also make sure that all modulefiles written in TCL start with the string
+#%Module
+
+
+
+Lmod has detected the following error: The following module(s) are unknown:
+"matplotlib==3.10.0"
+
+Please check the spelling or version number. Also try "module spider ..."
+It is also possible your cache file is out-of-date; it may help to try:
+  $ module --ignore_cache load "matplotlib==3.10.0"
+
+Also make sure that all modulefiles written in TCL start with the string
+#%Module
+
+
+
+Lmod has detected the following error: The following module(s) are unknown:
+"numpy==2.2.2"
+
+Please check the spelling or version number. Also try "module spider ..."
+It is also possible your cache file is out-of-date; it may help to try:
+  $ module --ignore_cache load "numpy==2.2.2"
+
+Also make sure that all modulefiles written in TCL start with the string
+#%Module
+
+
+
+Lmod has detected the following error: The following module(s) are unknown:
+"pandas==2.2.3"
+
+Please check the spelling or version number. Also try "module spider ..."
+It is also possible your cache file is out-of-date; it may help to try:
+  $ module --ignore_cache load "pandas==2.2.3"
+
+Also make sure that all modulefiles written in TCL start with the string
+#%Module
+
+
+
+Lmod has detected the following error: The following module(s) are unknown:
+"scikit_learn==1.6.1"
+
+Please check the spelling or version number. Also try "module spider ..."
+It is also possible your cache file is out-of-date; it may help to try:
+  $ module --ignore_cache load "scikit_learn==1.6.1"
+
+Also make sure that all modulefiles written in TCL start with the string
+#%Module
+
+
+
+Lmod has detected the following error: The following module(s) are unknown:
+"pytorch==2.6.0"
+
+Please check the spelling or version number. Also try "module spider ..."
+It is also possible your cache file is out-of-date; it may help to try:
+  $ module --ignore_cache load "pytorch==2.6.0"
+
+Also make sure that all modulefiles written in TCL start with the string
+#%Module
+
+
+
+/var/spool/slurm/job5462263/slurm_script: line 22: /home/rrammohan/pytorch-env/bin/activate: No such file or directory
+
+Currently Loaded Modules:
+  1) slurm/latest     9) libxml2/2.9.13     17) UCC/1.0.0
+  2) spartan/rhel9   10) libpciaccess/0.16  18) OpenMPI/4.1.4
+  3) GCCcore/11.3.0  11) hwloc/2.7.1        19) OpenBLAS/0.3.20
+  4) zlib/1.2.12     12) OpenSSL/1.1        20) FlexiBLAS/3.2.0
+  5) binutils/2.38   13) libevent/2.1.12    21) FFTW/3.3.10
+  6) GCC/11.3.0      14) UCX/1.13.1         22) FFTW.MPI/3.3.10
+  7) numactl/2.0.14  15) libfabric/1.15.1   23) ScaLAPACK/2.2.0-fb
+  8) XZ/5.2.5        16) PMIx/4.2.2         24) foss/2022a
+
+ 
+
+python: can't open file '/home/rrammohan/github/1D_HT_Pinn/Data-prep/PINN/Basic_training/spartan/main_script.py': [Errno 2] No such file or directory
