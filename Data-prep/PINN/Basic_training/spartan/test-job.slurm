@@ -11,12 +11,9 @@
 #SBATCH --gres=gpu:1
 
 # Load necessary modules
-module load python/3.10
-module load matplotlib==3.10.0
-module load numpy==2.2.2
-module load pandas==2.2.3
-module load scikit_learn==1.6.1
-module load pytorch==2.6.0
+module load python/3.8.5            # Load Python module
+module load PyTorch/2.1.2-CUDA-12.2.0           # Load PyTorch (check with `module avail pytorch`)
+
 
 # (Optional) Create or activate a virtual environment
 source ~/pytorch-env/bin/activate
