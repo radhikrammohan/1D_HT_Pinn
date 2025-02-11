@@ -11,7 +11,7 @@
 #SBATCH --gres=gpu:1
 
 # Load necessary modules
-module load python/3.8.5            # Load Python module
+module load python/3.10.4           # Load Python module
 module load PyTorch/2.1.2-CUDA-12.2.0           # Load PyTorch (check with `module avail pytorch`)
 
 
