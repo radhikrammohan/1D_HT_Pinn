@@ -1,16 +1,16 @@
 Lmod has detected the following error: The following module(s) are unknown:
-"python/3.8.5"
+"python/3.10.4"
 
 Please check the spelling or version number. Also try "module spider ..."
 It is also possible your cache file is out-of-date; it may help to try:
-  $ module --ignore_cache load "python/3.8.5"
+  $ module --ignore_cache load "python/3.10.4"
 
 Also make sure that all modulefiles written in TCL start with the string
 #%Module
 
 
 
-/var/spool/slurm/job5463676/slurm_script: line 19: /home/rrammohan/pytorch-env/bin/activate: No such file or directory
+/var/spool/slurm/job5464468/slurm_script: line 19: /home/rrammohan/pytorch-env/bin/activate: No such file or directory
 
 Currently Loaded Modules:
   1) slurm/latest                 39) Python/3.10.4

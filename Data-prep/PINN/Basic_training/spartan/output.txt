@@ -1,6 +1,6 @@
 Loaded Modules:
-Running on node: spartan-gpgpu103.hpc.unimelb.edu.au
-CUDA devices available: Tue Feb 11 18:16:15 2025       
+Running on node: spartan-gpgpu122.hpc.unimelb.edu.au
+CUDA devices available: Tue Feb 11 18:50:34 2025       
 +-----------------------------------------------------------------------------------------+
 | NVIDIA-SMI 550.90.07              Driver Version: 550.90.07      CUDA Version: 12.4     |
 |-----------------------------------------+------------------------+----------------------+
@@ -8,8 +8,8 @@ CUDA devices available: Tue Feb 11 18:16:15 2025
 | Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
 |                                         |                        |               MIG M. |
 |=========================================+========================+======================|
-|   0  NVIDIA A100 80GB PCIe          On  |   00000000:65:00.0 Off |                    0 |
-| N/A   51C    P0             58W /  300W |       1MiB /  81920MiB |      0%      Default |
+|   0  NVIDIA A100 80GB PCIe          On  |   00000000:E3:00.0 Off |                    0 |
+| N/A   34C    P0             53W /  300W |       1MiB /  81920MiB |      0%      Default |
 |                                         |                        |             Disabled |
 +-----------------------------------------+------------------------+----------------------+
                                                                                          
