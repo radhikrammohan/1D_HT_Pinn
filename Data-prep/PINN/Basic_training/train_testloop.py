@@ -40,7 +40,7 @@ def training_loop(epochs, model, \
         data_loss_b = 0  # Data loss accumulator
         phy_loss_acc = 0  # PDE loss accumulator
         init_loss_acc = 0  # Initial condition loss accumulator
-
+        bc_loss_acc = 0  # Boundary condition loss accumulator
     
 
         # Loop through the training data loaders
@@ -60,7 +60,7 @@ def training_loop(epochs, model, \
             inputs_left = inputs_left
             inputs_right = inputs_right
             
-            t0 = time.perf_counter()
+            
             optimizer.zero_grad()  # Zero the gradients before backpropagation
             
             # Forward pass for data prediction
@@ -98,6 +98,7 @@ def training_loop(epochs, model, \
             data_loss_b += data_loss.item()
             phy_loss_acc += phy_loss.item()
             init_loss_acc += init_loss.item()
+            bc_loss_acc += bc_loss.item()
         
         # Append losses to respective lists for tracking
         if len(train_dataloader) > 0:
@@ -107,6 +108,8 @@ def training_loop(epochs, model, \
             pde_losses.append(phy_loss_acc / len(train_loader_pde))
         if len(train_loader_init) > 0:
             ic_losses.append(init_loss_acc / len(train_loader_init))
+        if len(train_loader_bc_l) > 0:
+            bc_losses.append(bc_loss_acc / len(train_loader_bc_l))
         
         # Set model to evaluation mode for testing
         model.eval()
