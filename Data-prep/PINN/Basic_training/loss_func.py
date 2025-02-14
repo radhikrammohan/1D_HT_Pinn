@@ -103,7 +103,7 @@ def pde_loss(model,x,t,T_S,T_L):
     x.requires_grad = True
     t.requires_grad = True
     
-    u_pred = model(x,t).to(device)
+    u_pred = model(x,t)
 
     u_t = torch.autograd.grad(u_pred, t, 
                                 torch.ones_like(u_pred).to(device),

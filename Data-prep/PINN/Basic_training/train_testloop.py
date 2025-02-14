@@ -54,7 +54,7 @@ def training_loop(epochs, model, \
             inputs_left = batch_left
             inputs_right = batch_right
 
-            inputs, temp_inp = inputs.to(device), temp_inp
+            inputs, temp_inp = inputs.to(device), temp_inp.to(device)
             inputs_pde = inputs_pde
             inputs_init = inputs_init
             inputs_left = inputs_left
