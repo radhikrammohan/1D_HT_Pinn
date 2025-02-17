@@ -173,7 +173,7 @@ def boundary_loss(model,x,t,t_surr):
 
 def ic_loss(u_pred,temp_init):
     temp_init_tsr = temp_init.clone().detach().to(device)
-   
+    
     ic_mean = torch.mean(torch.square(u_pred -temp_init_tsr))
     
     return ic_mean
