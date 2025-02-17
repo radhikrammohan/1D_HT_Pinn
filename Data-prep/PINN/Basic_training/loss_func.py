@@ -104,6 +104,7 @@ def pde_loss(model,x,t,T_S,T_L):
     t.requires_grad = True
     
     u_pred = model(x,t).to(device)
+    # u_pred  = model
 
     u_t = torch.autograd.grad(u_pred, t, 
                                 torch.ones_like(u_pred).to(device),
@@ -127,13 +128,13 @@ def pde_loss(model,x,t,T_S,T_L):
                                 torch.ones_like(u_x), 
                                 create_graph=True,
                                 allow_unused=True,
-                                materialize_grads=True)[0][:, 0:1]
+                                materialize_grads=True)[0]
     
     if u_xx is None:
         raise RuntimeError("u_xx is None")
 
-    T_S_tensor = T_S.clone().detach().to(device)
-    T_L_tensor = T_L.clone().detach().to(device)
+    # T_S_tensor = T_S.clone().detach().to(device)
+    # T_L_tensor = T_L.clone().detach().to(device)
     
     residual = u_t - (u_xx)
    
