@@ -31,7 +31,7 @@ def training_loop(epochs, model, \
     T_lt = temp_var["T_lt"]
     t_surrt = temp_var["t_surrt"]
     temp_init_t = temp_var["temp_init_t"]
-    print(temp_init_t)
+    
     model.to(device)  # Move the model to the GPU
     
     for epoch in range(epochs):
@@ -54,13 +54,19 @@ def training_loop(epochs, model, \
             inputs_left = batch_left
             inputs_right = batch_right
 
-            inputs, temp_inp = inputs.to(device), temp_inp.to(device)
+            inputs, temp_inp = inputs, temp_inp
             inputs_pde = inputs_pde
             inputs_init = inputs_init
             inputs_left = inputs_left
             inputs_right = inputs_right
             
-            
+            # print(inputs_pde[:5,:])
+            # print(inputs_init[:5,:])
+            # print(inputs_left[:5,:])
+            # print(inputs_right[:5,:])
+            # print(temp_inp[:5,:])
+        
+    
             optimizer.zero_grad()  # Zero the gradients before backpropagation
             
             # Forward pass for data prediction

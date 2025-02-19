@@ -106,7 +106,7 @@ def pde_loss(model,x,t,T_S,T_L):
     u_pred = model(x,t)
 
     u_t = torch.autograd.grad(u_pred, t, 
-                                torch.ones_like(u_pred).to(device),
+                                torch.ones_like(u_pred),
                                 create_graph=True,
                                 allow_unused=True,
                                 )[0] # Calculate the first time derivative
@@ -115,7 +115,7 @@ def pde_loss(model,x,t,T_S,T_L):
 
     u_x = torch.autograd.grad(u_pred, 
                                 x, 
-                                torch.ones_like(u_pred).to(device), 
+                                torch.ones_like(u_pred), 
                                 create_graph=True,
                                 allow_unused =True)[0] # Calculate the first space derivative
 
@@ -164,7 +164,7 @@ def boundary_loss(model,x,t,t_surr):
 
     t_surr_t = t_surr.clone().detach().to(device) # Convert the boundary temperature to a tensor
 
-    u_pred = model(x,t).to(device)  # Predict the temperature at the boundary
+    u_pred = model(x,t)  # Predict the temperature at the boundary
     bc_mean = torch.mean(torch.square(u_pred - t_surr_t)) # Calculate the mean square error of the boundary condition
    
     return bc_mean
