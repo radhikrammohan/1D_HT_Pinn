@@ -59,7 +59,7 @@ alpha_l_t = torch.tensor(alpha_l,dtype=torch.float32,device=device)
 #          # Thermal diffusivity
 
 # t_surr = 500.0 
-temp_init = 919.0
+# temp_init = 919.0
 T_L = 574.4 +273.0                       #  K -Liquidus Temperature (615 c) AL 380
 T_S = 497.3 +273.0                     # K- Solidus Temperature (550 C)
 T_St = torch.tensor(T_S,dtype=torch.float32,device=device)
@@ -138,7 +138,7 @@ def pde_loss(model,x,t,T_S,T_L):
     
     residual = u_t - (u_xx)
    
-    resid_mean = torch.mean(torch.square(residual)) 
+    resid_mean = nn.MSELoss()(residual,torch.zeros_like(residual).to(device))
     # print(resid_mean.dtype)
     
     return resid_mean
@@ -162,19 +162,23 @@ def boundary_loss(model,x,t,t_surr):
     # if t_surr_t is None:
     #     raise RuntimeError("t_surr_t is None")
     # res_l = u_x -(htc*(u_pred-t_surr_t))
-
-    t_surr_t = t_surr.clone().detach().to(device)
-
+    
+    # t_surr_t = t_surr.clone().detach().to(device)
+    
     u_pred = model(x,t).to(device)
-    bc_mean = torch.mean(torch.square(u_pred - t_surr_t))
+    bc_mean = nn.MSELoss()(u_pred,t_surr)
    
 
     return bc_mean
 
-def ic_loss(u_pred,temp_init):
-    temp_init_tsr = temp_init.clone().detach().to(device)
+def ic_loss(u_pred, temp_init):
     
-    ic_mean = torch.mean(torch.square(u_pred -temp_init_tsr))
+    
+    
+    # # u_del = u_pred - temp_init
+    temp_i = torch.full_like(u_pred,temp_init)
+    
+    ic_mean = nn.MSELoss()(u_pred,temp_i)    
     
     return ic_mean
 

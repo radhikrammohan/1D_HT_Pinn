@@ -226,12 +226,12 @@ def icinp(length, icpts,scl="True"):
     inp_ic = np.column_stack((x, t))
     return inp_ic
 
-def bcinp(length, time_end, bcpts, scl="True"):
+def bcinp(length, time_end, bcpts, delt, scl="True"):
     # module to create boundary condition inputs
     x_l = np.zeros(bcpts)
     x_r = np.ones(bcpts)*length
 
-    t = np.linspace(0, time_end, bcpts)
+    t = np.linspace(0+delt, time_end, bcpts)
     print("The number of points in the left boundary condition is", len(x_l))
     print("The number of points in the right boundary condition is", len(x_r))
 
