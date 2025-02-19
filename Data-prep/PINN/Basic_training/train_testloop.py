@@ -1,5 +1,5 @@
 import time
-
+from itertools import zip_longest
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset, RandomSampler
@@ -61,8 +61,15 @@ def training_loop(epochs, model, \
 
         # Loop through the training data loaders
         for (batch, batch_pde, batch_init, batch_left, batch_right) in \
-             zip(train_dataloader, train_loader_pde, train_loader_init, train_loader_bc_l, train_loader_bc_r):
+             zip_longest(train_dataloader, train_loader_pde, train_loader_init, train_loader_bc_l, train_loader_bc_r):
             
+            # print(len(train_dataloader))
+            # print(len(train_loader_pde))
+            # print(len(train_loader_init))
+            # print(len(train_loader_bc_l))
+            # print(len(train_loader_bc_r))
+            if batch is None or batch_pde is None or batch_init is None or batch_left is None or batch_right is None:
+                continue  # Skip this iteration
             # Extract inputs from each batch
             inputs, temp_inp = batch
             inputs_pde = batch_pde
@@ -76,7 +83,7 @@ def training_loop(epochs, model, \
             inputs_left = inputs_left
             inputs_right = inputs_right
             
-           
+            
             optimizer.zero_grad()  # Zero the gradients before backpropagation
             
             # Forward pass for data prediction
@@ -132,9 +139,11 @@ def training_loop(epochs, model, \
         test_loss = 0
         
         # Evaluate on test data without gradient calculation
-        for (batch, batch_pde, batch_init, batch_left, batch_right) in zip(test_dataloader, \
+        for (batch, batch_pde, batch_init, batch_left, batch_right) in zip_longest(test_dataloader, \
             pde_test_dataloader, ic_test_dataloader, test_bc_l_dataloader, test_bc_r_dataloader):
             
+            if batch is None or batch_pde is None or batch_init is None or batch_left is None or batch_right is None:
+               continue  # Skip this iteration
             inputs, temp_inp = batch
             inputs_pde = batch_pde
             inputs_init = batch_init

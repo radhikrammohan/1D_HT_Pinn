@@ -166,7 +166,8 @@ def boundary_loss(model,x,t,t_surr):
     # t_surr_t = t_surr.clone().detach().to(device)
     
     u_pred = model(x,t).to(device)
-    bc_mean = nn.MSELoss()(u_pred,t_surr)
+    t_bc = torch.full_like(u_pred,t_surr)
+    bc_mean = nn.MSELoss()(u_pred,t_bc)
    
 
     return bc_mean
@@ -177,7 +178,8 @@ def ic_loss(u_pred, temp_init):
     
     # # u_del = u_pred - temp_init
     temp_i = torch.full_like(u_pred,temp_init)
-    
+    # print(u_pred.shape)
+    # print(temp_i.shape)
     ic_mean = nn.MSELoss()(u_pred,temp_i)    
     
     return ic_mean
