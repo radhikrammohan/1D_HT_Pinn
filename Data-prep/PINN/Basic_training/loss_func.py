@@ -59,7 +59,7 @@ alpha_l_t = torch.tensor(alpha_l,dtype=torch.float32,device=device)
 #          # Thermal diffusivity
 
 # t_surr = 500.0 
-temp_init = 919.0
+# temp_init = 919.0
 T_L = 574.4 +273.0                       #  K -Liquidus Temperature (615 c) AL 380
 T_S = 497.3 +273.0                     # K- Solidus Temperature (550 C)
 T_St = torch.tensor(T_S,dtype=torch.float32,device=device)
@@ -103,7 +103,8 @@ def pde_loss(model,x,t,T_S,T_L):
     x.requires_grad = True
     t.requires_grad = True
     
-    u_pred = model(x,t)
+    u_pred = model(x,t).to(device)
+    # u_pred  = model
 
     u_t = torch.autograd.grad(u_pred, t, 
                                 torch.ones_like(u_pred),
@@ -127,17 +128,17 @@ def pde_loss(model,x,t,T_S,T_L):
                                 torch.ones_like(u_x), 
                                 create_graph=True,
                                 allow_unused=True,
-                                materialize_grads=True)[0][:, 0:1] # Calculate the second space derivative
+                                materialize_grads=True)[0]
     
     if u_xx is None:
         raise RuntimeError("u_xx is None") # Check if u_xx is None
 
-    T_S_tensor = T_S.clone().detach().to(device)
-    T_L_tensor = T_L.clone().detach().to(device)
+    # T_S_tensor = T_S.clone().detach().to(device)
+    # T_L_tensor = T_L.clone().detach().to(device)
     
     residual = u_t - (u_xx) # Calculate the residual of the PDE
    
-    resid_mean = torch.mean(torch.square(residual))  # Calculate the mean square error of the residual
+    resid_mean = nn.MSELoss()(residual,torch.zeros_like(residual).to(device))
     # print(resid_mean.dtype)
     
     return resid_mean
@@ -161,18 +162,22 @@ def boundary_loss(model,x,t,t_surr):
     # if t_surr_t is None:
     #     raise RuntimeError("t_surr_t is None")
     # res_l = u_x -(htc*(u_pred-t_surr_t))
-
-    t_surr_t = t_surr.clone().detach().to(device) # Convert the boundary temperature to a tensor
-
-    u_pred = model(x,t)  # Predict the temperature at the boundary
-    bc_mean = torch.mean(torch.square(u_pred - t_surr_t)) # Calculate the mean square error of the boundary condition
+    
+    # t_surr_t = t_surr.clone().detach().to(device)
+    
+    u_pred = model(x,t).to(device)
+    bc_mean = nn.MSELoss()(u_pred,t_surr)
    
     return bc_mean
 
-def ic_loss(u_pred,temp_init):
-    temp_init_tsr = temp_init.clone().detach().to(device)
-   
-    ic_mean = torch.mean(torch.square(u_pred -temp_init_tsr))
+def ic_loss(u_pred, temp_init):
+    
+    
+    
+    # # u_del = u_pred - temp_init
+    temp_i = torch.full_like(u_pred,temp_init)
+    
+    ic_mean = nn.MSELoss()(u_pred,temp_i)    
     
     return ic_mean
 

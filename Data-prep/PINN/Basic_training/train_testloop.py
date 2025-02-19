@@ -16,8 +16,10 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 def training_loop(epochs, model, \
                   loss_fn_data, optimizer, \
                   train_dataloader, train_loader_pde,\
-                  test_dataloader, train_loader_init,\
-                  train_loader_bc_l,train_loader_bc_r,temp_var):
+                   train_loader_init,\
+                  train_loader_bc_l,train_loader_bc_r,\
+                      test_dataloader, pde_test_dataloader, ic_test_dataloader, \
+                          test_bc_l_dataloader, test_bc_r_dataloader, temp_var):
     
     # Initialize the lists to store losses
     train_losses = []
@@ -26,6 +28,13 @@ def training_loop(epochs, model, \
     pde_losses = []
     ic_losses = []
     bc_losses = []
+    
+    data_loss_test = []
+    pde_loss_test = []
+    ic_loss_test = []
+    bc_loss_test = []
+    
+    
 
     T_st = temp_var["T_st"]
     T_lt = temp_var["T_lt"]
@@ -41,6 +50,13 @@ def training_loop(epochs, model, \
         phy_loss_acc = 0  # PDE loss accumulator
         init_loss_acc = 0  # Initial condition loss accumulator
         bc_loss_acc = 0  # Boundary condition loss accumulator
+        
+        
+        data_loss_t = 0  # Data loss accumulator
+        phy_loss_t = 0
+        ic_loss_t = 0
+        bc_l_loss_t = 0
+        bc_r_loss_t = 0
     
 
         # Loop through the training data loaders
@@ -60,13 +76,7 @@ def training_loop(epochs, model, \
             inputs_left = inputs_left
             inputs_right = inputs_right
             
-            # print(inputs_pde[:5,:])
-            # print(inputs_init[:5,:])
-            # print(inputs_left[:5,:])
-            # print(inputs_right[:5,:])
-            # print(temp_inp[:5,:])
-        
-    
+           
             optimizer.zero_grad()  # Zero the gradients before backpropagation
             
             # Forward pass for data prediction
@@ -84,14 +94,14 @@ def training_loop(epochs, model, \
             # Boundary condition loss (left and right)
             bc_loss_left = boundary_loss(model, inputs_left[:, 0].unsqueeze(1), inputs_left[:, 1].unsqueeze(1), t_surrt)
             bc_loss_right = boundary_loss(model, inputs_right[:, 0].unsqueeze(1), inputs_right[:, 1].unsqueeze(1), t_surrt)
-            bc_loss = bc_loss_left + bc_loss_right
+            bc_loss = 0.5*(bc_loss_left + bc_loss_right)
             # Calculate individual losses
            
             phy_loss = pde_loss(model, inputs_pde[:, 0].unsqueeze(1), inputs_pde[:, 1].unsqueeze(1), T_st, T_lt)  # PDE loss
           
-                      
+          
             # Define weights for the different losses
-            w0, w1, w2, w3 = 1, 1, 1, 1
+            w0, w1, w2, w3 = 1, 1,1,1
             # Calculate total loss
             loss = w0 * data_loss + w1 * phy_loss + w2 * init_loss + w3 * bc_loss
             
@@ -122,27 +132,72 @@ def training_loop(epochs, model, \
         test_loss = 0
         
         # Evaluate on test data without gradient calculation
-        for batch in test_dataloader:
+        for (batch, batch_pde, batch_init, batch_left, batch_right) in zip(test_dataloader, \
+            pde_test_dataloader, ic_test_dataloader, test_bc_l_dataloader, test_bc_r_dataloader):
+            
             inputs, temp_inp = batch
+            inputs_pde = batch_pde
+            inputs_init = batch_init
+            inputs_left = batch_left
+            inputs_right = batch_right
+            
             inputs, temp_inp = inputs, temp_inp
-            model
+            inputs_pde = inputs_pde
+            inputs_init = inputs_init
+            inputs_left = inputs_left
+            inputs_right = inputs_right
+            
+            
             u_pred = model(inputs[:, 0].unsqueeze(1), inputs[:, 1].unsqueeze(1))
             data_loss_t = loss_fn_data(u_pred, temp_inp)
-            loss = data_loss_t
+            
+            u_initl = model(inputs_init[:, 0].unsqueeze(1), inputs_init[:, 1].unsqueeze(1))
+            init_loss_t = ic_loss(u_initl, temp_init_t)
+            
+            u_left = model(inputs_left[:, 0].unsqueeze(1), inputs_left[:, 1].unsqueeze(1))
+            u_right = model(inputs_right[:, 0].unsqueeze(1), inputs_right[:, 1].unsqueeze(1))
+            
+            bc_loss_left_t = boundary_loss(model, inputs_left[:, 0].unsqueeze(1), inputs_left[:, 1].unsqueeze(1),t_surrt)
+            bc_loss_right_t = boundary_loss(model, inputs_right[:, 0].unsqueeze(1), inputs_right[:, 1].unsqueeze(1),t_surrt)
+            bc_loss_t = 0.5*(bc_loss_left_t + bc_loss_right_t)
+            
+            phy_loss_t = pde_loss(model, inputs_pde[:, 0].unsqueeze(1), inputs_pde[:, 1].unsqueeze(1), T_st, T_lt)
+            
+            w0, w1, w2, w3 = 1, 1, 1, 1
+            loss = w0 * data_loss_t + w1 * phy_loss_t + w2 * init_loss_t + w3 * bc_loss_t
+            
+            
             test_loss += loss.item()
+            data_loss_t += data_loss_t.item()
+            phy_loss_t += phy_loss_t.item()
+            ic_loss_t += init_loss_t.item()
+            bc_l_loss_t += bc_loss_t.item()
         
         # Normalize the test loss by the number of test batches
         if len(test_dataloader) > 0:
             test_losses.append(test_loss / len(test_dataloader))
+            data_loss_test.append(data_loss_t / len(test_dataloader))
+        if len(pde_test_dataloader) > 0:
+            pde_loss_test.append(phy_loss_t / len(pde_test_dataloader))
+        if len(ic_test_dataloader) > 0:
+            ic_loss_test.append(ic_loss_t / len(ic_test_dataloader))
+        if len(test_bc_l_dataloader) > 0:
+            bc_loss_test.append(bc_loss_t / len(test_bc_l_dataloader))
         
         # Empty CUDA cache to free memory
         torch.cuda.empty_cache()
         
         # Print loss every 10 epochs
         if epoch % 10 == 0:
+            print(f" ")
+            print(f"--"*50)
             print(f"| Epoch {epoch},            | Training-Loss {train_loss:.4e},| Test-Loss {test_loss:.4e}   |")
-            print(f"--"*40)
-            print(f"| Data-loss {data_loss:.4e},| pde-loss {phy_loss_acc:.4e},        | initc-loss {init_loss:.4e},|bc_loss {bc_loss:.4e}|") 
+            print(f"--"*50)
+            print(f"| Data-loss {data_loss:.4e},| pde-loss {phy_loss_acc:.4e},| initc-loss {init_loss:.4e},|bc_loss {bc_loss:.4e}|") 
+            print(f"--"*50)
+            print(f"| Data-loss-test {data_loss_t:.4e},| pde-loss-test {phy_loss_t:.4e},| initc-loss-test {init_loss_t:.4e},|bc_loss-test {bc_loss_t:.4e}|")
+            print(f"--"*50)
+            print(f" ")
     
     # Return all collected losses for further analysis
     return train_losses, test_losses, pde_losses, bc_losses, ic_losses, data_losses
