@@ -10,7 +10,13 @@ from loss_func import loss_fn_data,pde_loss,ic_loss,boundary_loss
 
 
 # check for gpu
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+if torch.backends.mps.is_available():
+    print("MPS is available")
+    device = torch.device('mps')
+else:
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    print('Using device:', device)
+
 
 
 def training_loop(epochs, model, \
@@ -108,7 +114,7 @@ def training_loop(epochs, model, \
           
           
             # Define weights for the different losses
-            w0, w1, w2, w3 = 1, 1,1,1
+            w0, w1, w2, w3 = 1, 0,0,0
             # Calculate total loss
             loss = w0 * data_loss + w1 * phy_loss + w2 * init_loss + w3 * bc_loss
             
@@ -172,11 +178,11 @@ def training_loop(epochs, model, \
             
             phy_loss_t = pde_loss(model, inputs_pde[:, 0].unsqueeze(1), inputs_pde[:, 1].unsqueeze(1), T_st, T_lt)
             
-            w0, w1, w2, w3 = 1, 1, 1, 1
-            loss = w0 * data_loss_t + w1 * phy_loss_t + w2 * init_loss_t + w3 * bc_loss_t
+            w0, w1, w2, w3 = 1, 0,0,0
+            loss_t = w0 * data_loss_t + w1 * phy_loss_t + w2 * init_loss_t + w3 * bc_loss_t
             
             
-            test_loss += loss.item()
+            test_loss += loss_t.item()
             data_loss_t += data_loss_t.item()
             phy_loss_t += phy_loss_t.item()
             ic_loss_t += init_loss_t.item()

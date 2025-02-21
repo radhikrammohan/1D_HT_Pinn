@@ -16,7 +16,14 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset, RandomSampler
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+if torch.backends.mps.is_available():
+    print("MPS is available")
+    device = torch.device('mps')
+else:
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    print('Using device:', device)
+
+print('Using device:', device)
 
 # Material properties
 rho = 2300.0                     # Density of AL380 (kg/m^3)
