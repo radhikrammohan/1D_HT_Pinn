@@ -150,7 +150,7 @@ def pde_loss(model,x,t,T_S,T_L):
     
     return resid_mean
 
-def boundary_loss(model,x,t,t_surr):
+def boundary_loss(model,x,t,t_surr,t_init):
     
     # x.requires_grad = True
     # t.requires_grad = True
@@ -172,8 +172,15 @@ def boundary_loss(model,x,t,t_surr):
     
     # t_surr_t = t_surr.clone().detach().to(device)
     
+    def bc_func(x,t,t_surr,t_init):
+        if t == 0:
+            return t_init
+        else:
+            return t_surr
+        
     u_pred = model(x,t).to(device)
-    t_bc = torch.full_like(u_pred,t_surr)
+    bc = bc_func(x,t).to(device)
+    t_bc = torch.full_like(u_pred,bc)
     bc_mean = nn.MSELoss()(u_pred,t_bc)
    
 
