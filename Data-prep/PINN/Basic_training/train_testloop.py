@@ -50,6 +50,7 @@ def training_loop(epochs, model, \
     model.to(device)  # Move the model to the GPU
     
     for epoch in range(epochs):
+        
         model.train()  # Set the model to training mode
         train_loss = 0  # Initialize the training loss for this epoch
         data_loss_b = 0  # Data loss accumulator
@@ -63,7 +64,7 @@ def training_loop(epochs, model, \
         ic_loss_t = 0
         bc_l_loss_t = 0
         bc_r_loss_t = 0
-    
+
 
         # Loop through the training data loaders
         for (batch, batch_pde, batch_init, batch_left, batch_right) in \
@@ -98,7 +99,7 @@ def training_loop(epochs, model, \
             
             # Forward pass for initial condition prediction
             u_initl = model(inputs_init[:, 0].unsqueeze(1), inputs_init[:, 1].unsqueeze(1))
-            init_loss = ic_loss(u_initl, temp_init_t)  # Initial condition loss
+            init_loss = ic_loss(model,inputs_init[:, 0].unsqueeze(1), inputs_init[:, 1].unsqueeze(1),temp_init_t)  # Initial condition loss
             
             # Forward pass for boundary conditions
             u_left = model(inputs_left[:, 0].unsqueeze(1), inputs_left[:, 1].unsqueeze(1))
@@ -120,7 +121,16 @@ def training_loop(epochs, model, \
             loss =  w1 * phy_loss + w2 * init_loss + w3 * bc_loss
             # Backpropagation
             loss.backward(retain_graph=True)  # Backpropagate the gradients
-            optimizer.step()  # Update the weights
+            
+            def closure():
+                optimizer.zero_grad()
+                loss.backward()
+                return loss
+            
+            if optimizer.__class__ == torch.optim.Adam:
+                optimizer.step()  # Update the weights
+            else:
+                optimizer.step(closure)
             
             # Accumulate losses for tracking
             train_loss += loss.item()
@@ -167,13 +177,13 @@ def training_loop(epochs, model, \
             data_loss_t = loss_fn_data(u_pred, temp_inp)
             
             u_initl = model(inputs_init[:, 0].unsqueeze(1), inputs_init[:, 1].unsqueeze(1))
-            init_loss_t = ic_loss(u_initl, temp_init_t)
+            init_loss_t = ic_loss(model,inputs_init[:, 0].unsqueeze(1), inputs_init[:, 1].unsqueeze(1),temp_init_t)
             
             u_left = model(inputs_left[:, 0].unsqueeze(1), inputs_left[:, 1].unsqueeze(1))
             u_right = model(inputs_right[:, 0].unsqueeze(1), inputs_right[:, 1].unsqueeze(1))
             
-            bc_loss_left_t = boundary_loss(model, inputs_left[:, 0].unsqueeze(1), inputs_left[:, 1].unsqueeze(1),t_surrt)
-            bc_loss_right_t = boundary_loss(model, inputs_right[:, 0].unsqueeze(1), inputs_right[:, 1].unsqueeze(1),t_surrt)
+            bc_loss_left_t = boundary_loss(model, inputs_left[:, 0].unsqueeze(1), inputs_left[:, 1].unsqueeze(1),t_surrt,temp_init_t)
+            bc_loss_right_t = boundary_loss(model, inputs_right[:, 0].unsqueeze(1), inputs_right[:, 1].unsqueeze(1),t_surrt,temp_init_t)
             bc_loss_t = 0.5*(bc_loss_left_t + bc_loss_right_t)
             
             phy_loss_t = pde_loss(model, inputs_pde[:, 0].unsqueeze(1), inputs_pde[:, 1].unsqueeze(1), T_st, T_lt)
@@ -206,14 +216,24 @@ def training_loop(epochs, model, \
         if epoch % 10 == 0:
             print(f" ")
             print(f"--"*50)
-            print(f"| Epoch {epoch},            | Training-Loss {train_loss:.4e},| Test-Loss {test_loss:.4e}   |")
+            print(f"| Epoch {epoch+1},            | Training-Loss {train_loss:.4e},| Test-Loss {test_loss:.4e}   |")
             print(f"--"*50)
             print(f"| Data-loss {data_loss:.4e},| pde-loss {phy_loss_acc:.4e},| initc-loss {init_loss:.4e},|bc_loss {bc_loss:.4e}|") 
             print(f"--"*50)
             print(f"| Data-loss-test {data_loss_t:.4e},| pde-loss-test {phy_loss_t:.4e},| initc-loss-test {init_loss_t:.4e},|bc_loss-test {bc_loss_t:.4e}|")
             print(f"--"*50)
             print(f" ")
-    
+
+        if epoch == (epochs-1):
+            print(f" ")
+            print(f"--"*50)
+            print(f"| Epoch {epoch+1},            | Training-Loss {train_loss:.4e},| Test-Loss {test_loss:.4e}   |")
+            print(f"--"*50)
+            print(f"| Data-loss {data_loss:.4e},| pde-loss {phy_loss_acc:.4e},| initc-loss {init_loss:.4e},|bc_loss {bc_loss:.4e}|") 
+            print(f"--"*50)
+            print(f"| Data-loss-test {data_loss_t:.4e},| pde-loss-test {phy_loss_t:.4e},| initc-loss-test {init_loss_t:.4e},|bc_loss-test {bc_loss_t:.4e}|")
+            print(f"--"*50)
+            print(f" ")
     # Return all collected losses for further analysis
     return train_losses, test_losses, pde_losses, bc_losses, ic_losses, data_losses
 
