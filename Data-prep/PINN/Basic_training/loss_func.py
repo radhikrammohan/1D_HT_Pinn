@@ -114,21 +114,21 @@ def pde_loss(model,x,t,T_S,T_L):
     # u_pred  = model
 
     u_t = torch.autograd.grad(u_pred, t, 
-                                torch.ones_like(u_pred).to(device),
+                                torch.ones_like(u_pred),
                                 create_graph=True,
                                 allow_unused=True,
                                 )[0] # Calculate the first time derivative
     if u_t is None:
-        raise RuntimeError("u_t is None")
+        raise RuntimeError("u_t is None") # Check if u_t is None
 
     u_x = torch.autograd.grad(u_pred, 
                                 x, 
-                                torch.ones_like(u_pred).to(device), 
+                                torch.ones_like(u_pred), 
                                 create_graph=True,
                                 allow_unused =True)[0] # Calculate the first space derivative
 
     if u_x is None:
-        raise RuntimeError("u_x is None")
+        raise RuntimeError("u_x is None") # Check if u_x is None
            
     u_xx = torch.autograd.grad(u_x, 
                                 x, 
@@ -138,12 +138,12 @@ def pde_loss(model,x,t,T_S,T_L):
                                 materialize_grads=True)[0]
     
     if u_xx is None:
-        raise RuntimeError("u_xx is None")
+        raise RuntimeError("u_xx is None") # Check if u_xx is None
 
     # T_S_tensor = T_S.clone().detach().to(device)
     # T_L_tensor = T_L.clone().detach().to(device)
     
-    residual = u_t - (u_xx)
+    residual = u_t - (u_xx) # Calculate the residual of the PDE
    
     resid_mean = nn.MSELoss()(residual,torch.zeros_like(residual).to(device))
     # print(resid_mean.dtype)
@@ -184,7 +184,6 @@ def boundary_loss(model,x,t,t_surr,t_init):
     
     bc_mean = nn.MSELoss()(u_pred,bc)
    
-
     return bc_mean
 
 def ic_loss(model,x,t,temp_init):
