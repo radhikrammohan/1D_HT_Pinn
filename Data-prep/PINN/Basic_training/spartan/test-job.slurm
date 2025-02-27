@@ -26,4 +26,4 @@ echo "Running on node: $(hostname)"
 echo "CUDA devices available: $(nvidia-smi)"
 
 # Run the Python script
-python main_script.py
+python 1d-pinn-hpc.py --job_id $SLURM_JOB_ID 

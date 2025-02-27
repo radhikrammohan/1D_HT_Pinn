@@ -16,7 +16,14 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset, RandomSampler
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+if torch.backends.mps.is_available():
+    print("MPS is available")
+    device = torch.device('mps')
+else:
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    print('Using device:', device)
+
+print('Using device:', device)
 
 # Material properties
 rho = 2300.0                     # Density of AL380 (kg/m^3)
@@ -59,7 +66,7 @@ alpha_l_t = torch.tensor(alpha_l,dtype=torch.float32,device=device)
 #          # Thermal diffusivity
 
 # t_surr = 500.0 
-temp_init = 919.0
+# temp_init = 919.0
 T_L = 574.4 +273.0                       #  K -Liquidus Temperature (615 c) AL 380
 T_S = 497.3 +273.0                     # K- Solidus Temperature (550 C)
 T_St = torch.tensor(T_S,dtype=torch.float32,device=device)
@@ -104,45 +111,46 @@ def pde_loss(model,x,t,T_S,T_L):
     t.requires_grad = True
     
     u_pred = model(x,t).to(device)
+    # u_pred  = model
 
     u_t = torch.autograd.grad(u_pred, t, 
-                                torch.ones_like(u_pred).to(device),
+                                torch.ones_like(u_pred),
                                 create_graph=True,
                                 allow_unused=True,
                                 )[0] # Calculate the first time derivative
     if u_t is None:
-        raise RuntimeError("u_t is None")
+        raise RuntimeError("u_t is None") # Check if u_t is None
 
     u_x = torch.autograd.grad(u_pred, 
                                 x, 
-                                torch.ones_like(u_pred).to(device), 
+                                torch.ones_like(u_pred), 
                                 create_graph=True,
                                 allow_unused =True)[0] # Calculate the first space derivative
 
     if u_x is None:
-        raise RuntimeError("u_x is None")
+        raise RuntimeError("u_x is None") # Check if u_x is None
            
     u_xx = torch.autograd.grad(u_x, 
                                 x, 
                                 torch.ones_like(u_x), 
                                 create_graph=True,
                                 allow_unused=True,
-                                materialize_grads=True)[0][:, 0:1]
+                                materialize_grads=True)[0]
     
     if u_xx is None:
-        raise RuntimeError("u_xx is None")
+        raise RuntimeError("u_xx is None") # Check if u_xx is None
 
-    T_S_tensor = T_S.clone().detach().to(device)
-    T_L_tensor = T_L.clone().detach().to(device)
+    # T_S_tensor = T_S.clone().detach().to(device)
+    # T_L_tensor = T_L.clone().detach().to(device)
     
-    residual = u_t - (u_xx)
+    residual = u_t - (u_xx) # Calculate the residual of the PDE
    
-    resid_mean = torch.mean(torch.square(residual)) 
+    resid_mean = nn.MSELoss()(residual,torch.zeros_like(residual).to(device))
     # print(resid_mean.dtype)
     
     return resid_mean
 
-def boundary_loss(model,x,t,t_surr):
+def boundary_loss(model,x,t,t_surr,t_init):
     
     # x.requires_grad = True
     # t.requires_grad = True
@@ -161,19 +169,36 @@ def boundary_loss(model,x,t,t_surr):
     # if t_surr_t is None:
     #     raise RuntimeError("t_surr_t is None")
     # res_l = u_x -(htc*(u_pred-t_surr_t))
-
-    t_surr_t = t_surr.clone().detach().to(device)
-
-    u_pred = model(x,t).to(device)
-    bc_mean = torch.mean(torch.square(u_pred - t_surr_t))
+    
+    # t_surr_t = t_surr.clone().detach().to(device)
+    
+    # def bc_func(x,t,t_surr,t_init):
+    #     if (t == 0).any():
+    #         return t_init
+    #     else:
+    #         return t_surr
+        
+    u_pred = model(x,t)
+    bc = torch.where(t == 0, t_init, t_surr)
+    
+    
+    bc_mean = nn.MSELoss()(u_pred,bc)
    
-
     return bc_mean
 
-def ic_loss(u_pred,temp_init):
-    temp_init_tsr = temp_init.clone().detach().to(device)
+def ic_loss(model,x,t,temp_init):
+    
+    u_pred = model(x,t)
+    
+    # def ic_func(x,t,temp_init):
+    #     return temp_init
+    
+    # u_ic = ic_func(x,t,temp_init)
+    
+    # # u_del = u_pred - temp_init
+    temp_i = torch.full_like(u_pred,temp_init)
    
-    ic_mean = torch.mean(torch.square(u_pred -temp_init_tsr))
+    ic_mean = nn.MSELoss()(u_pred,temp_i)    
     
     return ic_mean
 
