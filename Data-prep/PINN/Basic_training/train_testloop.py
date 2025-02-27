@@ -84,7 +84,7 @@ def training_loop(epochs, model, \
             inputs_left = batch_left
             inputs_right = batch_right
 
-            inputs, temp_inp = inputs.to(device), temp_inp
+            inputs, temp_inp = inputs, temp_inp
             inputs_pde = inputs_pde
             inputs_init = inputs_init
             inputs_left = inputs_left
@@ -131,13 +131,16 @@ def training_loop(epochs, model, \
                 optimizer.step()  # Update the weights
             else:
                 optimizer.step(closure)
-            
+             
             # Accumulate losses for tracking
             train_loss += loss.item()
+            
             data_loss_b += data_loss.item()
             phy_loss_acc += phy_loss.item()
             init_loss_acc += init_loss.item()
             bc_loss_acc += bc_loss.item()
+        
+          
         
         # Append losses to respective lists for tracking
         if len(train_dataloader) > 0:
@@ -150,6 +153,8 @@ def training_loop(epochs, model, \
         if len(train_loader_bc_l) > 0:
             bc_losses.append(bc_loss_acc / len(train_loader_bc_l))
         
+       
+
         # Set model to evaluation mode for testing
         model.eval()
         test_loss = 0
@@ -209,8 +214,25 @@ def training_loop(epochs, model, \
         if len(test_bc_l_dataloader) > 0:
             bc_loss_test.append(bc_loss_t / len(test_bc_l_dataloader))
         
+
+         # Saving the best model in the training loop
+        if epoch == 0:
+            best_loss = test_loss / len(test_dataloader)
+            best_model = model
+        else:
+            if test_loss < best_loss:
+                best_loss = test_loss
+                best_model = model
         # Empty CUDA cache to free memory
         torch.cuda.empty_cache()
+
+        # Get the train losses in an array  format
+        loss_train = {"train-loss": train_losses, "data-loss": data_losses, "pde-loss": pde_losses, "ic-loss": ic_losses, "bc-loss": bc_losses}
+        
+        loss_test = {"test-loss": test_losses, "data-loss": data_loss_test, "pde-loss": pde_loss_test, "ic-loss": ic_loss_test, "bc-loss": bc_loss_test}
+
+        # save this losses to a csv file
+
         
         # Print loss every 10 epochs
         if epoch % 10 == 0:
@@ -235,6 +257,7 @@ def training_loop(epochs, model, \
             print(f"--"*50)
             print(f" ")
     # Return all collected losses for further analysis
-    return train_losses, test_losses, pde_losses, bc_losses, ic_losses, data_losses
+    # return train_losses, test_losses, pde_losses, bc_losses, ic_losses, data_losses
+    return loss_train, loss_test, best_model
 
 

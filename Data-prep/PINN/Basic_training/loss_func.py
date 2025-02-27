@@ -114,21 +114,21 @@ def pde_loss(model,x,t,T_S,T_L):
     # u_pred  = model
 
     u_t = torch.autograd.grad(u_pred, t, 
-                                torch.ones_like(u_pred).to(device),
+                                torch.ones_like(u_pred),
                                 create_graph=True,
                                 allow_unused=True,
                                 )[0] # Calculate the first time derivative
     if u_t is None:
-        raise RuntimeError("u_t is None")
+        raise RuntimeError("u_t is None") # Check if u_t is None
 
     u_x = torch.autograd.grad(u_pred, 
                                 x, 
-                                torch.ones_like(u_pred).to(device), 
+                                torch.ones_like(u_pred), 
                                 create_graph=True,
                                 allow_unused =True)[0] # Calculate the first space derivative
 
     if u_x is None:
-        raise RuntimeError("u_x is None")
+        raise RuntimeError("u_x is None") # Check if u_x is None
            
     u_xx = torch.autograd.grad(u_x, 
                                 x, 
@@ -138,12 +138,12 @@ def pde_loss(model,x,t,T_S,T_L):
                                 materialize_grads=True)[0]
     
     if u_xx is None:
-        raise RuntimeError("u_xx is None")
+        raise RuntimeError("u_xx is None") # Check if u_xx is None
 
     # T_S_tensor = T_S.clone().detach().to(device)
     # T_L_tensor = T_L.clone().detach().to(device)
     
-    residual = u_t - (u_xx)
+    residual = u_t - (u_xx) # Calculate the residual of the PDE
    
     resid_mean = nn.MSELoss()(residual,torch.zeros_like(residual).to(device))
     # print(resid_mean.dtype)
@@ -172,34 +172,33 @@ def boundary_loss(model,x,t,t_surr,t_init):
     
     # t_surr_t = t_surr.clone().detach().to(device)
     
-    def bc_func(x,t,t_surr,t_init):
-        if (t == 0).any():
-            return t_init
-        else:
-            return t_surr
+    # def bc_func(x,t,t_surr,t_init):
+    #     if (t == 0).any():
+    #         return t_init
+    #     else:
+    #         return t_surr
         
     u_pred = model(x,t)
-    bc = bc_func(x,t,t_surr,t_init)
-    t_bc = torch.full_like(u_pred,bc)
-    bc_mean = nn.MSELoss()(u_pred,t_bc)
+    bc = torch.where(t == 0, t_init, t_surr)
+    
+    
+    bc_mean = nn.MSELoss()(u_pred,bc)
    
-
     return bc_mean
 
 def ic_loss(model,x,t,temp_init):
     
     u_pred = model(x,t)
     
-    def ic_func(x,t,temp_init):
-        return temp_init
+    # def ic_func(x,t,temp_init):
+    #     return temp_init
     
-    u_ic = ic_func(x,t,temp_init)
+    # u_ic = ic_func(x,t,temp_init)
     
     # # u_del = u_pred - temp_init
-    # temp_i = torch.full_like(u_pred,temp_init)
-    # print(u_pred.shape)
-    # print(temp_i.shape)
-    ic_mean = nn.MSELoss()(u_pred,u_ic)    
+    temp_i = torch.full_like(u_pred,temp_init)
+   
+    ic_mean = nn.MSELoss()(u_pred,temp_i)    
     
     return ic_mean
 
