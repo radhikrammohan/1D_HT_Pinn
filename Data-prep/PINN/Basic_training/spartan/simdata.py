@@ -206,7 +206,7 @@ def pdeinp(x_min, x_max, t_min, t_max, n_samples, sampler, scl="True"):
     if scl=="True":
         inp_pde[:,0] = scaler(inp_pde[:,0], x_min, x_max)
         inp_pde[:,1] = scaler(inp_pde[:,1], t_min, t_max)
-
+    print("The number of points in the PDE input is", len(inp_pde))
     return inp_pde
 
     #sample the data between input and out
@@ -219,19 +219,21 @@ def icinp(length, icpts,scl="True"):
     # module to create initial condition inputs
     x = np.linspace(0, length, icpts)
     t= np.zeros(len(x))
-
+    print("The number of points in the initial condition is", len(x))
     if scl == "True":
         x = scaler(x, 0, length)
         
     inp_ic = np.column_stack((x, t))
     return inp_ic
 
-def bcinp(length, time_end, bcpts, scl="True"):
+def bcinp(length, time_end, bcpts, delt, scl="True"):
     # module to create boundary condition inputs
     x_l = np.zeros(bcpts)
     x_r = np.ones(bcpts)*length
 
-    t = np.linspace(0, time_end, bcpts)
+    t = np.linspace(0+delt, time_end, bcpts)
+    print("The number of points in the left boundary condition is", len(x_l))
+    print("The number of points in the right boundary condition is", len(x_r))
 
     if scl == "True":
         x_l = scaler(x_l, 0, length)

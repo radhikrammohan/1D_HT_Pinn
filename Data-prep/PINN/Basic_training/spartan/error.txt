@@ -1,57 +1,8 @@
-Lmod has detected the following error: The following module(s) are unknown:
-"python/3.10.4"
-
-Please check the spelling or version number. Also try "module spider ..."
-It is also possible your cache file is out-of-date; it may help to try:
-  $ module --ignore_cache load "python/3.10.4"
-
-Also make sure that all modulefiles written in TCL start with the string
-#%Module
-
-
-
-/var/spool/slurm/job5464468/slurm_script: line 19: /home/rrammohan/pytorch-env/bin/activate: No such file or directory
+/var/spool/slurm/job6264979/slurm_script: line 22: /home/rrammohan/pytorch-env/bin/activate: No such file or directory
 
 Currently Loaded Modules:
-  1) slurm/latest                 39) Python/3.10.4
-  2) spartan/rhel9                40) protobuf/3.19.4
-  3) GCCcore/11.3.0               41) protobuf-python/3.19.4
-  4) zlib/1.2.12                  42) pybind11/2.9.2
-  5) binutils/2.38                43) SciPy-bundle/2022.05
-  6) GCC/11.3.0                   44) typing-extensions/4.3.0
-  7) numactl/2.0.14               45) libyaml/0.2.5
-  8) XZ/5.2.5                     46) PyYAML/6.0
-  9) libxml2/2.9.13               47) MPFR/4.1.0
- 10) libpciaccess/0.16            48) NASM/2.15.05
- 11) hwloc/2.7.1                  49) x264/20220620
- 12) OpenSSL/1.1                  50) LAME/3.100
- 13) libevent/2.1.12              51) x265/3.5
- 14) UCX/1.13.1                   52) expat/2.4.8
- 15) libfabric/1.15.1             53) libpng/1.6.37
- 16) PMIx/4.2.2                   54) Brotli/1.0.9
- 17) UCC/1.0.0                    55) freetype/2.12.1
- 18) OpenMPI/4.1.4                56) util-linux/2.38
- 19) OpenBLAS/0.3.20              57) fontconfig/2.14.0
- 20) FlexiBLAS/3.2.0              58) xorg-macros/1.19.3
- 21) FFTW/3.3.10                  59) X11/20220504
- 22) FFTW.MPI/3.3.10              60) FriBidi/1.0.12
- 23) ScaLAPACK/2.2.0-fb           61) FFmpeg/4.4.2
- 24) foss/2022a                   62) libjpeg-turbo/2.1.3
- 25) CUDA/12.2.0                  63) jbigkit/2.1
- 26) cuDNN/8.9.3.28-CUDA-12.2.0   64) gzip/1.12
- 27) GDRCopy/2.3                  65) lz4/1.9.3
- 28) UCX-CUDA/1.13.1-CUDA-12.2.0  66) zstd/1.5.2
- 29) magma/2.7.2-CUDA-12.2.0      67) libdeflate/1.10
- 30) NCCL/2.21.5-CUDA-12.2.0      68) LibTIFF/4.3.0
- 31) Ninja/1.10.2                 69) Pillow/9.1.1
- 32) bzip2/1.0.8                  70) expecttest/0.1.3
- 33) ncurses/6.3                  71) networkx/2.8.4
- 34) libreadline/8.1.2            72) MPC/1.2.1
- 35) Tcl/8.6.12                   73) gmpy2/2.1.2
- 36) SQLite/3.38.3                74) sympy/1.10.1
- 37) GMP/6.2.1                    75) Z3/4.10.2-Python-3.10.4
- 38) libffi/3.4.2                 76) PyTorch/2.1.2-CUDA-12.2.0
+  1) Anaconda3/2024.02-1
 
  
 
-python: can't open file '/home/rrammohan/github/1D_HT_Pinn/Data-prep/PINN/Basic_training/spartan/main_script.py': [Errno 2] No such file or directory
+/home/rrammohan/.conda/envs/pytorch-env/lib/python3.12/site-packages/torch/autograd/graph.py:823: UserWarning: Attempting to run cuBLAS, but there was no current CUDA context! Attempting to set the primary context... (Triggered internally at /pytorch/aten/src/ATen/cuda/CublasHandleslurmstepd: error: *** JOB 6264979 ON spartan-gpgpu123 CANCELLED AT 2025-02-27T21:30:37 DUE TO TIME LIMIT ***

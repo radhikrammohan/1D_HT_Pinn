@@ -1,22 +1,25 @@
 #!/bin/bash
 #SBATCH --job-name=test-job    # Name of the job
-#SBATCH --output=output.txt        # Output file for logs
-#SBATCH --error=error.txt          # Error log file
+#SBATCH --output=output_%j.txt        # Output file for logs
+#SBATCH --error=error_%j.txt          # Error log file
+#SBATCH -p feit-gpu-a100
+#SBATCH --gres=gpu:3
 #SBATCH --ntasks=1                 # Number of tasks (like chefs working on a dish)
-#SBATCH --cpus-per-task=4          # Number of CPU cores per task (like each chef’s hands)
-#SBATCH --mem=8G                   # Memory needed for the job (like ingredients required)
+#SBATCH --cpus-per-task=2          # Number of CPU cores per task (like each chef’s hands)
+#SBATCH --mem=10G                   # Memory needed for the job (like ingredients required)
 #SBATCH --time=00:30:00            # Max runtime (like how long your table is reserved)
-#SBATCH --partition=standard       # Partition/queue to run on (like choosing a fast-food or fine-dining section)
-#SBATCH -p gpu-a100
-#SBATCH --gres=gpu:1
+
+#SBATCH --qos=feit
 
 # Load necessary modules
-module load python/3.10.4           # Load Python module
-module load PyTorch/2.1.2-CUDA-12.2.0           # Load PyTorch (check with `module avail pytorch`)
+module purge
+module load Anaconda3
+source ~/.bashrc
+conda activate pytorch-env
 
 
-# (Optional) Create or activate a virtual environment
-source ~/pytorch-env/bin/activate
+
+
 
 # Print environment details (optional)
 echo "Loaded Modules:"

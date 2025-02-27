@@ -2,8 +2,8 @@
 # # Import libraries
 
 # %%
-%load_ext autoreload
-%autoreload 2
+# %load_ext autoreload
+# %autoreload 2
 
 import sys
 import math
@@ -54,8 +54,8 @@ tempfield = heat_data.datagen()
 
 heat_data.plot_temp(25)
 dt = heat_data.dt
-print(heat_data.dx)
-print(dt)
+# print(heat_data.dx)
+# print(dt)
 
 
 
@@ -131,7 +131,7 @@ else:
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print('Using device:', device)
 
-print('Using device:', device)
+# print('Using device:', device)
 
 # %% [markdown]
 # ### Tensor inputs
@@ -143,14 +143,14 @@ inp_ict = torch.tensor(ic_data2).float().to(device)
 inp_bclt = torch.tensor(bc_ldata2).float().to(device)
 inp_bclr = torch.tensor(bc_rdata2).float().to(device)
 
-print(input_t.shape)
+# print(input_t.shape)
 
 temp_t = torch.tensor(temp_data).float().to(device)
 temp_t = temp_t.view(-1,1)
 print(temp_t.shape)
 temp_init = 919.0 / temp_c
 # temp_init = scaler(temp_init,500.0,919.0)
-print(temp_init)
+# print(temp_init)
 temp_init_t = torch.tensor(temp_init).float().to(device)
 T_L = (574.4 +273.0)/ temp_c                     #  K -Liquidus Temperature (615 c) AL 380
 # T_L = scaler(T_L,500.0,919.0)
@@ -170,11 +170,11 @@ temp_var = {"T_st":T_st,"T_lt":T_lt,"t_surrt":t_surrt,"temp_init_t":temp_init_t}
 
 # %%
 train_inputs,test_inputs =train_test_split(input_t,test_size=0.2,random_state=42) # input data split
-print(train_inputs.shape)
+# print(train_inputs.shape)
 tr_inp_pde,ts_inp_pde = train_test_split( inp_pdet,test_size=0.2,random_state=42) # input pde data split
-print(tr_inp_pde.shape)
+# print(tr_inp_pde.shape)
 tr_inp_ic,ts_inp_ic = train_test_split( inp_ict,test_size=0.2,random_state=42) # input ic data split
-print(tr_inp_ic.shape)
+# print(tr_inp_ic.shape)
 
 tr_inp_bcl,ts_inp_bcl = train_test_split( inp_bclt,test_size=0.2,random_state=42) # input bc left data split
 tr_inp_bcr,ts_inp_bcr = train_test_split( inp_bclr,test_size=0.2,random_state=42) # input bc right data split
@@ -228,7 +228,7 @@ inp_bcr_dataset = ResDataset(tr_inp_bcr) # bc right residual dataset for trainin
 inp_bcr_dataset_test = ResDataset(ts_inp_bcr)   # bc right residual dataset for testing
 
 # %%
-print(len(inp_ic_dataset))
+# print(len(inp_ic_dataset))
 
 # %% [markdown]
 # ### Dataloader Preparation
@@ -308,7 +308,7 @@ output_size=1
 learning_rate = 0.005
 hidden_layers = 5
 
-epochs_1 = 10
+epochs_1 = 10000
 epochs_2 = 10
 
 model = PINN(input_size, hidden_size, output_size,hidden_layers).to(device)
