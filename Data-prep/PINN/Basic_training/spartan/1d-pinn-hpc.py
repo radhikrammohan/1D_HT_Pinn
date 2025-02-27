@@ -308,7 +308,7 @@ output_size=1
 learning_rate = 0.005
 hidden_layers = 5
 
-epochs_1 = 10000
+epochs_1 = 10
 epochs_2 = 10
 
 model = PINN(input_size, hidden_size, output_size,hidden_layers).to(device)
