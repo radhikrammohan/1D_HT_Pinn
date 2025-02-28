@@ -229,6 +229,7 @@ def training_loop(epochs, model, \
         # Get the train losses in an array  format
         loss_train = {"train-loss": train_losses, "data-loss": data_losses, "pde-loss": pde_losses, "ic-loss": ic_losses, "bc-loss": bc_losses}
         
+        
         loss_test = {"test-loss": test_losses, "data-loss": data_loss_test, "pde-loss": pde_loss_test, "ic-loss": ic_loss_test, "bc-loss": bc_loss_test}
 
         # save this losses to a csv file

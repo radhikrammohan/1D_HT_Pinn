@@ -360,12 +360,11 @@ args = parser.parse_args()
 folder_path = f"output_files/job_{args.job_id}/"
 os.makedirs(folder_path, exist_ok=True)
 
+torch.save(best_model.state_dict(),os.path.join(folder_path, "best-model.pth"))
 
 # Define file path
 loss_train_pth = os.path.join(folder_path, "train-loss.pkl")
 loss_test_pth = os.path.join(folder_path, "test-loss.pkl")
-
-torch.save(best_model.state_dict(),os.path.join(folder_path, "best-model.pth"))
 
 
 # Save file in the specified folder
