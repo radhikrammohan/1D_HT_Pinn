@@ -371,9 +371,6 @@ args = parser.parse_args()
 
 # Create a unique folder based on SLURM job ID
 
-loss_train = {key: value.cpu().detach().numpy() for key, value in loss_train.items()}
-loss_test = {key: value.cpu().detach().numpy() for key, value in loss_test.items()}
-
 folder_path = f"output_files/job_{args.job_id}/"
 os.makedirs(folder_path, exist_ok=True)
 
