@@ -6,7 +6,7 @@
 #SBATCH --gres=gpu:3
 #SBATCH --ntasks=1                 # Number of tasks (like chefs working on a dish)
 #SBATCH --cpus-per-task=2          # Number of CPU cores per task (like each chef’s hands)
-#SBATCH --mem=10G                   # Memory needed for the job (like ingredients required)
+#SBATCH --mem=20G                   # Memory needed for the job (like ingredients required)
 #SBATCH --time=00:30:00            # Max runtime (like how long your table is reserved)
 
 #SBATCH --qos=feit
