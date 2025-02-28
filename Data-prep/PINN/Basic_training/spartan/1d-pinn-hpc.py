@@ -347,7 +347,19 @@ loss_train,loss_test,best_model = training_loop(epochs_1, model, loss_fn_data, \
 #                   temp_var) 
 # test_losses = test_loop(epochs, model, loss_fn_data, optimizer, train_loader, test_loader)  # Test the model
 
+def move_to_cpu(obj):
+    """Recursively move tensors in a dictionary or list to CPU."""
+    if isinstance(obj, torch.Tensor):
+        return obj.cpu()
+    elif isinstance(obj, list):
+        return [move_to_cpu(item) for item in obj]  # Convert tensors inside lists
+    elif isinstance(obj, dict):
+        return {k: move_to_cpu(v) for k, v in obj.items()}  # Convert tensors inside dicts
+    return obj  # Return unchanged for other types
 
+# Ensure all tensors inside lists/dicts are on CPU
+loss_train = move_to_cpu(loss_train)
+loss_test = move_to_cpu(loss_test)
 
 # %%
 
