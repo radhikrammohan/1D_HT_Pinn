@@ -306,7 +306,7 @@ hidden_size = 20
 output_size=1
 
 learning_rate = 0.005
-hidden_layers = 5
+hidden_layers = 3
 
 epochs_1 = 80000
 epochs_2 = 10

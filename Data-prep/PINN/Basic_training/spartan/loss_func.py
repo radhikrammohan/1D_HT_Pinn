@@ -144,8 +144,8 @@ def pde_loss(model,x,t,T_S,T_L):
     # T_L_tensor = T_L.clone().detach().to(device)
     
     residual = u_t - (u_xx) # Calculate the residual of the PDE
-   
-    resid_mean = nn.MSELoss()(residual,torch.zeros_like(residual).to(device))
+    resid_mean = torch.mean(torch.square(residual))
+    # resid_mean = nn.MSELoss()(residual,torch.zeros_like(residual).to(device))
     # print(resid_mean.dtype)
     
     return resid_mean
@@ -181,8 +181,8 @@ def boundary_loss(model,x,t,t_surr,t_init):
     u_pred = model(x,t)
     bc = torch.where(t == 0, t_init, t_surr)
     
-    
-    bc_mean = nn.MSELoss()(u_pred,bc)
+    bc_mean =  torch.mean(torch.square(u_pred-bc))
+    # bc_mean = nn.MSELoss()(u_pred,bc)
    
     return bc_mean
 
@@ -198,8 +198,8 @@ def ic_loss(model,x,t,temp_init):
     # # u_del = u_pred - temp_init
     temp_i = torch.full_like(u_pred,temp_init)
    
-    ic_mean = nn.MSELoss()(u_pred,temp_i)    
-    
+    # ic_mean = nn.MSELoss()(u_pred,temp_i)    
+    ic_mean = torch.mean(torch.square(u_pred-temp_i))
     return ic_mean
 
 def accuracy(u_pred, u_true):
