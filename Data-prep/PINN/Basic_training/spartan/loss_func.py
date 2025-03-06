@@ -67,10 +67,17 @@ alpha_l_t = torch.tensor(alpha_l,dtype=torch.float32,device=device)
 
 # t_surr = 500.0 
 # temp_init = 919.0
+def temp_scaler(temp_data, temp_init, t_surr):
+    temp_data = (temp_data - t_surr) / (temp_init - t_surr)
+    return temp_data
+
 T_L = 574.4 +273.0                       #  K -Liquidus Temperature (615 c) AL 380
+T_L_s = temp_scaler(T_L, 919.0, 500.0)
+
 T_S = 497.3 +273.0                     # K- Solidus Temperature (550 C)
-T_St = torch.tensor(T_S,dtype=torch.float32,device=device)
-T_Lt = torch.tensor(T_L,dtype=torch.float32,device=device)
+T_S_s = temp_scaler(T_S, 919.0, 500.0)
+T_St = torch.tensor(T_S_s,dtype=torch.float32,device=device)
+T_Lt = torch.tensor(T_L_s,dtype=torch.float32,device=device)
 
 
 
@@ -143,7 +150,7 @@ def pde_loss(model,x,t,T_S,T_L):
     # T_S_tensor = T_S.clone().detach().to(device)
     # T_L_tensor = T_L.clone().detach().to(device)
     
-    residual = u_t - (u_xx) # Calculate the residual of the PDE
+    residual = (u_t - u_xx) # Calculate the residual of the PDE
     resid_mean = torch.mean(torch.square(residual))
     # resid_mean = nn.MSELoss()(residual,torch.zeros_like(residual).to(device))
     # print(resid_mean.dtype)
