@@ -139,10 +139,10 @@ def fdd(length, time_end, num_points, num_steps, scl="True"):
     X, T = np.meshgrid(x, t)
     x = X.flatten()
     t = T.flatten()
-    print(x)
+    # print(x)
     # if scl == "True":
     #     x = scaler(x, 0, length)
-    #     t = scaler(t, 0, time_end)
+    #     t = scaler(t, 0, time_end) 
     inp_fdd = np.column_stack((x, t))
     return inp_fdd
 
@@ -204,8 +204,11 @@ def pdeinp(x_min, x_max, t_min, t_max, n_samples, sampler, scl="True"):
     else:
         raise ValueError("Invalid sampler specified. Choose from 'random', 'uniform', 'LHS', 'Halton', 'Hammersley', 'Sobol'.")
     if scl=="True":
+        print("scaling initated")
         inp_pde[:,0] = scaler(inp_pde[:,0], x_min, x_max)
         inp_pde[:,1] = scaler(inp_pde[:,1], t_min, t_max)
+    else:
+        print("scaling not initiated") 
     print("The number of points in the PDE input is", len(inp_pde))
     return inp_pde
 
@@ -222,7 +225,8 @@ def icinp(length, icpts,scl="True"):
     print("The number of points in the initial condition is", len(x))
     if scl == "True":
         x = scaler(x, 0, length)
-        
+    else:
+        print("scaling not initiated")
     inp_ic = np.column_stack((x, t))
     return inp_ic
 
@@ -239,6 +243,8 @@ def bcinp(length, time_end, bcpts, delt, scl="True"):
         x_l = scaler(x_l, 0, length)
         x_r = scaler(x_r, 0, length)
         t = scaler(t, 0, time_end)
+    else:
+        print("scaling not initiated")
     inp_bcl = np.column_stack((x_l, t))
     inp_bcr = np.column_stack((x_r, t))
     return inp_bcl, inp_bcr
