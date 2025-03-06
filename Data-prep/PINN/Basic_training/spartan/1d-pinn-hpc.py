@@ -63,16 +63,16 @@ dt = heat_data.dt
 # %% [markdown]
 # ## Data Preparation for PINN training
 
-# %%
-
 # Temperature dataset
 temp_data = tempfield.flatten()
 
+def temp_scaler(temp_data, temp_init, t_surr):
+    temp_data = (temp_data - t_surr) / (temp_init - t_surr)
+    return temp_data
+
 # temp_data = scaler(temp_data,400.0,919.0)
 
-temp_data = temp_data / (919.0)
-
-
+temp_data_s = temp_scaler(temp_data, temp_init, t_surr)
 
 
 # %% [markdown]
@@ -136,34 +136,34 @@ else:
 # %% [markdown]
 # ### Tensor inputs
 
-# %%
 input_t = torch.tensor(inp_data2).float().to(device)
 inp_pdet = torch.tensor(pde_data2).float().to(device)
 inp_ict = torch.tensor(ic_data2).float().to(device)
 inp_bclt = torch.tensor(bc_ldata2).float().to(device)
 inp_bclr = torch.tensor(bc_rdata2).float().to(device)
 
-# print(input_t.shape)
 
-temp_t = torch.tensor(temp_data).float().to(device)
+
+temp_t = torch.tensor(temp_data_s).float().to(device)
 temp_t = temp_t.view(-1,1)
-print(temp_t.shape)
-temp_init = 919.0 / temp_c
+
+temp_init_s= temp_scaler(919.0, temp_init, t_surr)
 # temp_init = scaler(temp_init,500.0,919.0)
-# print(temp_init)
-temp_init_t = torch.tensor(temp_init).float().to(device)
-T_L = (574.4 +273.0)/ temp_c                     #  K -Liquidus Temperature (615 c) AL 380
+
+temp_init_t = torch.tensor(temp_init_s).float().to(device)
+T_L = (574.4 +273.0)                   #  K -Liquidus Temperature (615 c) AL 380
+T_L_s = scaler(T_L,temp_init, t_surr)                     #  K -Liquidus Temperature (615 c) AL 380
 # T_L = scaler(T_L,500.0,919.0)
-T_S = (497.3 +273.0)/ temp_c                     #  K -Solidus Temperature (615 c) AL 380
+T_S = (497.3 +273.0)                   #  K -Solidus Temperature (615 c) AL 380
+T_S_s = scaler(T_S,temp_init, t_surr)                     #  K -Solidus Temperature (615 c) AL 380
 # T_S = scaler(T_S,500.0,919.0)                     #  K -Solidus Temperature (615 c) AL 380
-t_surr = 500.0 /temp_c
+t_surr_s = temp_scaler(t_surr, temp_init, t_surr)
 # t_surr = scaler(t_surr,500.0,919.0)
-T_lt = torch.tensor(T_L).float().to(device)    # Liquidus Temperature tensor
-T_st = torch.tensor(T_S).float().to(device)    # Solidus Temperature tensor
-t_surrt = torch.tensor(t_surr).float().to(device)   # Surrounding Temperature tensor
+T_lt = torch.tensor(T_L_s).float().to(device)    # Liquidus Temperature tensor
+T_st = torch.tensor(T_S_s).float().to(device)    # Solidus Temperature tensor
+t_surrt = torch.tensor(t_surr_s).float().to(device)   # Surrounding Temperature tensor
 
 temp_var = {"T_st":T_st,"T_lt":T_lt,"t_surrt":t_surrt,"temp_init_t":temp_init_t}
-
 
 # %% [markdown]
 # ### Dataset Preparation for pytorch
@@ -246,18 +246,18 @@ rand_smpl_ic_test = RandomSampler(inp_ic_dataset_test,replacement=True, num_samp
 rand_smpl_bcl_test = RandomSampler(inp_bcl_dataset_test,replacement=True,num_samples=len(inp_bcl_dataset_test)) # random sampler for bc left residuals
 rand_smpl_bcr_test = RandomSampler(inp_bcr_dataset_test,replacement=True,num_samples=len(inp_bcr_dataset_test)) # random sampler for bc right residuals
 
-train_loader = DataLoader(inp_dataset, batch_size=128, sampler=rand_smpl) # training data loader
-pde_loader = DataLoader(inp_pde_dataset, batch_size=128, sampler=rand_smpl_pde) # pde residual data loader training
-ic_loader = DataLoader(inp_ic_dataset, batch_size=128, sampler=rand_smpl_ic) # ic residual data loader training
-bcl_loader = DataLoader(inp_bcl_dataset, batch_size=128, sampler=rand_smpl_bcl) # bc left residual data loader training
-bcr_loader = DataLoader(inp_bcr_dataset, batch_size=128, sampler=rand_smpl_bcr) # bc right residual data loader training
+train_loader = DataLoader(inp_dataset, batch_size=256, sampler=rand_smpl) # training data loader
+pde_loader = DataLoader(inp_pde_dataset, batch_size=256, sampler=rand_smpl_pde) # pde residual data loader training
+ic_loader = DataLoader(inp_ic_dataset, batch_size=256, sampler=rand_smpl_ic) # ic residual data loader training
+bcl_loader = DataLoader(inp_bcl_dataset, batch_size=256, sampler=rand_smpl_bcl) # bc left residual data loader training
+bcr_loader = DataLoader(inp_bcr_dataset, batch_size=256, sampler=rand_smpl_bcr) # bc right residual data loader training
 
 
-test_loader = DataLoader(inp_dataset_test, batch_size=128, sampler=rand_smpl_test) # testing data loader
-pde_loader_test = DataLoader(inp_pde_dataset_test, batch_size=128, sampler=rand_smpl_pde_test)
-ic_loader_test = DataLoader(inp_ic_dataset_test, batch_size=128, sampler=rand_smpl_ic_test)
-bcl_loader_test = DataLoader(inp_bcl_dataset_test, batch_size=128, sampler=rand_smpl_bcl_test)
-bcr_loader_test = DataLoader(inp_bcr_dataset_test, batch_size=128, sampler=rand_smpl_bcr_test)
+test_loader = DataLoader(inp_dataset_test, batch_size=256, sampler=rand_smpl_test) # testing data loader
+pde_loader_test = DataLoader(inp_pde_dataset_test, batch_size=256, sampler=rand_smpl_pde_test)
+ic_loader_test = DataLoader(inp_ic_dataset_test, batch_size=256, sampler=rand_smpl_ic_test)
+bcl_loader_test = DataLoader(inp_bcl_dataset_test, batch_size=256, sampler=rand_smpl_bcl_test)
+bcr_loader_test = DataLoader(inp_bcr_dataset_test, batch_size=256, sampler=rand_smpl_bcr_test)
 
 
 
@@ -308,7 +308,7 @@ output_size=1
 learning_rate = 0.005
 hidden_layers = 3
 
-epochs_1 = 80000
+epochs_1 = 20000
 epochs_2 = 10
 
 model = PINN(input_size, hidden_size, output_size,hidden_layers).to(device)
@@ -392,4 +392,6 @@ with open(loss_test_pth, "wb") as f:
 print(f"File saved at: {loss_train_pth}")
 print(f"File saved at: {loss_test_pth}")
 
+print("Training complete")
+print(f"Model Architecture: {hidden_size} x {hidden_layers+1}, Learning Rate: {learning_rate},Activation: Tanh, Optimizer: Adam")
 
