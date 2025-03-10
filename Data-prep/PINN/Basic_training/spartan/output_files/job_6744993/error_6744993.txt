@@ -1,0 +1,10 @@
+
+Currently Loaded Modules:
+  1) Anaconda3/2024.02-1
+
+ 
+
+Traceback (most recent call last):
+  File "/home/rrammohan/jobs/1D_HT_Pinn/Data-prep/PINN/Basic_training/spartan/1d-normal.py", line 31, in <module>
+    from simdata import  fdd, pdeinp, icinp, bcinp,HT_sim ,scaler, invscaler
+ModuleNotFoundError: No module named 'simdata'
