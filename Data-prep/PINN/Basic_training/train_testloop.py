@@ -117,7 +117,7 @@ def training_loop(epochs, model, \
             # Define weights for the different losses
             w0, w1, w2, w3 = 1, 1, 1,1
             # Calculate total loss
-            loss = w0 * data_loss + w1 * phy_loss + w2 * init_loss + w3 * bc_loss
+            loss =  w1 * phy_loss + w2 * init_loss + w3 * bc_loss
             # loss =  w1 * phy_loss + w2 * init_loss + w3 * bc_loss
             # Backpropagation
             loss.backward(retain_graph=True)  # Backpropagate the gradients
@@ -194,7 +194,7 @@ def training_loop(epochs, model, \
             phy_loss_t = pde_loss(model, inputs_pde[:, 0].unsqueeze(1), inputs_pde[:, 1].unsqueeze(1), T_st, T_lt)
             
             w0, w1, w2, w3 = 1,1,1,1
-            loss_t = w0 * data_loss_t + w1 * phy_loss_t + w2 * init_loss_t + w3 * bc_loss_t
+            loss_t =  w1 * phy_loss_t + w2 * init_loss_t + w3 * bc_loss_t
             # loss_t = w1 * phy_loss_t + w2 * init_loss_t + w3 * bc_loss_t
             
             test_loss += loss_t.item()
