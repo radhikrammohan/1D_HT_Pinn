@@ -8,7 +8,7 @@
 #SBATCH --ntasks=1                 # Number of tasks (like chefs working on a dish)
 #SBATCH --cpus-per-task=2          # Number of CPU cores per task (like each chef’s hands)
 #SBATCH --mem=10G                   # Memory needed for the job (like ingredients required)
-#SBATCH --time=0-01:00:00            # Max runtime (like how long your table is reserved)
+#SBATCH --time=0-08:00:00            # Max runtime (like how long your table is reserved)
 
 #SBATCH --qos=feit
 
