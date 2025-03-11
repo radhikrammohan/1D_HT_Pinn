@@ -28,7 +28,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset, RandomSampler
 from torch.optim import Adam, LBFGS
 
-from simdata import  fdd, pdeinp, icinp, bcinp,HT_sim ,scaler, invscaler
+
 from loss_func import loss_fn_data,pde_loss,ic_loss,boundary_loss
 from train_testloop import training_loop
 
@@ -146,15 +146,15 @@ temp_init = 1.0
 t_surr = 0.0
 temp_init_t = 1.0
 T_L = (574.4 +273.0)                   #  K -Liquidus Temperature (615 c) AL 380
-T_L_s = scaler(T_L,temp_init, t_surr)                     #  K -Liquidus Temperature (615 c) AL 380
+# T_L_s = scaler(T_L,temp_init, t_surr)                     #  K -Liquidus Temperature (615 c) AL 380
 # T_L = scaler(T_L,500.0,919.0)
 T_S = (497.3 +273.0)                   #  K -Solidus Temperature (615 c) AL 380
-T_S_s = scaler(T_S,temp_init, t_surr)                     #  K -Solidus Temperature (615 c) AL 380
+# T_S_s = scaler(T_S,temp_init, t_surr)                     #  K -Solidus Temperature (615 c) AL 380
 # T_S = scaler(T_S,500.0,919.0)                     #  K -Solidus Temperature (615 c) AL 380
 t_surr_s = 0.0
 # t_surr = scaler(t_surr,500.0,919.0)
-T_lt = torch.tensor(T_L_s).float().to(device)    # Liquidus Temperature tensor
-T_st = torch.tensor(T_S_s).float().to(device)    # Solidus Temperature tensor
+T_lt = torch.tensor(T_L).float().to(device)    # Liquidus Temperature tensor
+T_st = torch.tensor(T_S).float().to(device)    # Solidus Temperature tensor
 t_surrt = torch.tensor(t_surr_s).float().to(device)   # Surrounding Temperature tensor
 
 temp_var = {"T_st":T_st,"T_lt":T_lt,"t_surrt":t_surrt,"temp_init_t":temp_init_t}
