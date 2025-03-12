@@ -265,13 +265,13 @@ from model import PINN
 
 # %%
 input_size = 2
-hidden_size = 20
+hidden_size = 40
 output_size=1
 
 learning_rate = 0.005
 hidden_layers = 5
 
-epochs_1 = 10000
+epochs_1 = 30000
 epochs_2 = 10
 
 model = PINN(input_size, hidden_size, output_size,hidden_layers).to(device)
@@ -356,5 +356,6 @@ with open(loss_test_pth, "wb") as f:
 
 print(f"File saved at: {loss_train_pth}")
 print(f"File saved at: {loss_test_pth}")
+print(f"epoch: {epochs_1}, hidden layers: {hidden_layers}, hidden size: {hidden_size}, learning rate: {learning_rate}")
 
 
