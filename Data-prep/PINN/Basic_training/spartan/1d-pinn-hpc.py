@@ -54,6 +54,7 @@ tempfield = heat_data.datagen()
 
 heat_data.plot_temp(25)
 dt = heat_data.dt
+dx = heat_data.dx
 # print(heat_data.dx)
 # print(dt)
 
@@ -96,24 +97,25 @@ inp_data = fdd(15e-3, 40, numpoints, num_steps)
 
 
 def scale2(x,x_c,t_c):
-    x[:,0] = x[:,0] * x_c
-    x[:,1] = x[:,1] * t_c
-    return x
+    scaled_x = x.copy()
+    scaled_x[:,0] = x[:,0] * x_c
+    scaled_x[:,1] = x[:,1] * t_c
+    return scaled_x
 
 inp_data2 = scale2(inp_data,x_c,t_c)
 
 # input dataset-pde residual
 # The pde inputs are generated using the pdeinp function in simdata.py
-pde_data = pdeinp(0.01,15e-3,0,time_end,pde_pts,"Hammersley",scl=1) 
+pde_data = pdeinp(dx,length-dx,dt,time_end,pde_pts,"Hammersley",scl="False") 
 
 pde_data2 = scale2(pde_data,x_c,t_c)
 
 # input dataset - ic residual
-ic_data = icinp(15e-3,ic_pts,scl="False")
+ic_data = icinp(length,ic_pts,scl="False")
 ic_data2 = scale2(ic_data,x_c,t_c)
 # input dataset - boundary residual
-bc_ldata = bcinp(15e-3,40,bc_pts,dt,scl="False")[0]
-bc_rdata = bcinp(15e-3,40,bc_pts,dt,scl="False")[1]
+bc_ldata = bcinp(length,time_end,bc_pts,dt,scl="False")[0]
+bc_rdata = bcinp(length,time_end,bc_pts,dt,scl="False")[1]
 
 bc_ldata2 = scale2(bc_ldata,x_c,t_c)
 bc_rdata2 = scale2(bc_rdata,x_c,t_c)
@@ -234,17 +236,17 @@ inp_bcr_dataset_test = ResDataset(ts_inp_bcr)   # bc right residual dataset for 
 # ### Dataloader Preparation
 
 # %%
-rand_smpl = RandomSampler(inp_dataset, replacement=True, num_samples=1000)  # random sampler for training/simulation data
-rand_smpl_pde = RandomSampler(inp_pde_dataset, replacement=True, num_samples=len(inp_pde_dataset)) # random sampler for pde residuals-training
-rand_smpl_ic = RandomSampler(inp_ic_dataset, replacement=True, num_samples=len(inp_ic_dataset))  # random sampler for ic residuals-training
-rand_smpl_bcl = RandomSampler(inp_bcl_dataset, replacement=True, num_samples=len(inp_bcl_dataset)) # random sampler for bc left residuals-training
-rand_smpl_bcr = RandomSampler(inp_bcr_dataset, replacement=True, num_samples=len(inp_bcr_dataset)) # random sampler for bc right residuals-training
+rand_smpl = RandomSampler(inp_dataset, replacement=False)  # random sampler for training/simulation data
+rand_smpl_pde = RandomSampler(inp_pde_dataset, replacement=False) # random sampler for pde residuals-training
+rand_smpl_ic = RandomSampler(inp_ic_dataset, replacement=False)  # random sampler for ic residuals-training
+rand_smpl_bcl = RandomSampler(inp_bcl_dataset, replacement=False) # random sampler for bc left residuals-training
+rand_smpl_bcr = RandomSampler(inp_bcr_dataset, replacement=False) # random sampler for bc right residuals-training
 
-rand_smpl_test = RandomSampler(inp_dataset_test, replacement=True, num_samples=1000)  # random sampler for testing/simulation data
-rand_smpl_pde_test = RandomSampler(inp_pde_dataset_test,replacement=True, num_samples=len(inp_pde_dataset_test))  # random sampler for pde residuals
-rand_smpl_ic_test = RandomSampler(inp_ic_dataset_test,replacement=True, num_samples= len(inp_ic_dataset_test))  # random sampler for ic residuals
-rand_smpl_bcl_test = RandomSampler(inp_bcl_dataset_test,replacement=True,num_samples=len(inp_bcl_dataset_test)) # random sampler for bc left residuals
-rand_smpl_bcr_test = RandomSampler(inp_bcr_dataset_test,replacement=True,num_samples=len(inp_bcr_dataset_test)) # random sampler for bc right residuals
+rand_smpl_test = RandomSampler(inp_dataset_test, replacement=False )  # random sampler for testing/simulation data
+rand_smpl_pde_test = RandomSampler(inp_pde_dataset_test,replacement=False)  # random sampler for pde residuals
+rand_smpl_ic_test = RandomSampler(inp_ic_dataset_test,replacement=False )  # random sampler for ic residuals
+rand_smpl_bcl_test = RandomSampler(inp_bcl_dataset_test,replacement=False) # random sampler for bc left residuals
+rand_smpl_bcr_test = RandomSampler(inp_bcr_dataset_test,replacement=False) # random sampler for bc right residuals
 
 train_loader = DataLoader(inp_dataset, batch_size=256, sampler=rand_smpl) # training data loader
 pde_loader = DataLoader(inp_pde_dataset, batch_size=256, sampler=rand_smpl_pde) # pde residual data loader training
@@ -258,7 +260,6 @@ pde_loader_test = DataLoader(inp_pde_dataset_test, batch_size=256, sampler=rand_
 ic_loader_test = DataLoader(inp_ic_dataset_test, batch_size=256, sampler=rand_smpl_ic_test)
 bcl_loader_test = DataLoader(inp_bcl_dataset_test, batch_size=256, sampler=rand_smpl_bcl_test)
 bcr_loader_test = DataLoader(inp_bcr_dataset_test, batch_size=256, sampler=rand_smpl_bcr_test)
-
 
 
 

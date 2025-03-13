@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader, TensorDataset, RandomSampler
 from torch.optim import Adam
 
 from loss_func import loss_fn_data,pde_loss,ic_loss,boundary_loss
-
+import copy
 
 
 # check for gpu
@@ -84,11 +84,7 @@ def training_loop(epochs, model, \
             inputs_left = batch_left
             inputs_right = batch_right
 
-            inputs, temp_inp = inputs, temp_inp
-            inputs_pde = inputs_pde
-            inputs_init = inputs_init
-            inputs_left = inputs_left
-            inputs_right = inputs_right
+            
             
             
             optimizer.zero_grad()  # Zero the gradients before backpropagation
@@ -171,11 +167,7 @@ def training_loop(epochs, model, \
             inputs_left = batch_left
             inputs_right = batch_right
             
-            inputs, temp_inp = inputs, temp_inp
-            inputs_pde = inputs_pde
-            inputs_init = inputs_init
-            inputs_left = inputs_left
-            inputs_right = inputs_right
+            
             
             
             u_pred = model(inputs[:, 0].unsqueeze(1), inputs[:, 1].unsqueeze(1))
@@ -218,11 +210,12 @@ def training_loop(epochs, model, \
          # Saving the best model in the training loop
         if epoch == 0:
             best_loss = test_loss / len(test_dataloader)
-            best_model = model
+            best_model = copy.deepcopy(model)
         else:
-            if test_loss < best_loss:
-                best_loss = test_loss
-                best_model = model
+            current_loss = test_loss / len(test_dataloader)
+            if current_loss < best_loss:
+                best_loss = current_loss
+                best_model = copy.deepcopy(model)
         # Empty CUDA cache to free memory
         torch.cuda.empty_cache()
 
