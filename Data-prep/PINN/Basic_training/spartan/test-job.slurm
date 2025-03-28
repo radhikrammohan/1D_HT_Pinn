@@ -12,6 +12,10 @@
 
 #SBATCH --qos=feit
 
+
+# Define the timestamp format
+TIMESTAMP=$(date +%Y-%m-%d_%H-%M)
+
 # Load necessary modules
 module purge
 module load Anaconda3
@@ -30,4 +34,8 @@ echo "Running on node: $(hostname)"
 echo "CUDA devices available: $(nvidia-smi)"
 
 # Run the Python script
-python 1d-normal.py --job_id $SLURM_JOB_ID 
+python 1d-pinn-hpc.py --job_id $SLURM_JOB_ID 
+
+# Rename the SLURM output file
+mv outputs/output_${SLURM_JOB_ID}.txt outputs/output_${SLURM_JOB_ID}_${TIMESTAMP}.txt
+mv outputs/error_${SLURM_JOB_ID}.txt outputs/error_${SLURM_JOB_ID}_${TIMESTAMP}.txt 
