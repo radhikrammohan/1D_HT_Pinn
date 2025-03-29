@@ -303,11 +303,11 @@ class PINN(nn.Module):
 
 # %%
 input_size = 2
-hidden_size = 5 
+hidden_size = 10 
 output_size=1
 
 learning_rate = 0.005
-hidden_layers = 2
+hidden_layers = 5
 
 epochs_1 = 20000
 epochs_2 = 10
