@@ -30,7 +30,7 @@ class HT_sim():
         self.rho = 2300.0                     # Density of AL380 (kg/m^3)
         self.rho_l = 2460.0                   # Density of AL380 (kg/m^3)
         self.rho_s = 2710.0                    # Density of AL380 (kg/m^3)
-        self.rho_m = (self.rho_l + self.rho_s )/2       # Desnity in mushy zone is taken as average of liquid and solid density
+        self.rho_m = (self.rho_l + self.rho_s )/2       # Density in mushy zone is taken as average of liquid and solid density
 
         self.k = 104.0                       # W/m-K
         self.k_l = self.k                       # W/m-K
@@ -187,7 +187,7 @@ def unidata(x_min, x_max, t_min, t_max, n_samples, sampler):
 
 
 
-def pdeinp(x_min, x_max, t_min, t_max, n_samples, sampler, scl="True"):
+def pdeinp(x_min, x_max, t_min, t_max, n_samples, sampler):
      
     # module to create PDE inputs with various sampling strategies
     # define a sampling strategy
@@ -205,12 +205,12 @@ def pdeinp(x_min, x_max, t_min, t_max, n_samples, sampler, scl="True"):
         inp_pde = quasirandom(n_samples, "Sobol", x_min, x_max, t_min, t_max)
     else:
         raise ValueError("Invalid sampler specified. Choose from 'random', 'uniform', 'LHS', 'Halton', 'Hammersley', 'Sobol'.")
-    if scl=="True":
-        print("scaling initated")
-        inp_pde[:,0] = scaler(inp_pde[:,0], x_min, x_max)
-        inp_pde[:,1] = scaler(inp_pde[:,1], t_min, t_max)
-    else:
-        print("scaling not initiated") 
+    # if scl=="True":
+    #     print("scaling initated")
+    #     inp_pde[:,0] = scaler(inp_pde[:,0], x_min, x_max)
+    #     inp_pde[:,1] = scaler(inp_pde[:,1], t_min, t_max)
+    # else:
+    #     print("scaling not initiated") 
     print("The number of points in the PDE input is", len(inp_pde))
     return inp_pde
 

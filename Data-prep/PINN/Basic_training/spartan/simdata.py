@@ -185,7 +185,7 @@ def unidata(x_min, x_max, t_min, t_max, n_samples, sampler):
 
 
 
-def pdeinp(x_min, x_max, t_min, t_max, n_samples, sampler, scl="True"):
+def pdeinp(x_min, x_max, t_min, t_max, n_samples, sampler):
      
     # module to create PDE inputs with various sampling strategies
     # define a sampling strategy
@@ -203,9 +203,9 @@ def pdeinp(x_min, x_max, t_min, t_max, n_samples, sampler, scl="True"):
         inp_pde = quasirandom(n_samples, "Sobol", x_min, x_max, t_min, t_max)
     else:
         raise ValueError("Invalid sampler specified. Choose from 'random', 'uniform', 'LHS', 'Halton', 'Hammersley', 'Sobol'.")
-    if scl=="True":
-        inp_pde[:,0] = scaler(inp_pde[:,0], x_min, x_max)
-        inp_pde[:,1] = scaler(inp_pde[:,1], t_min, t_max)
+    # if scl=="True":
+    #     inp_pde[:,0] = scaler(inp_pde[:,0], x_min, x_max)
+    #     inp_pde[:,1] = scaler(inp_pde[:,1], t_min, t_max)
     print("The number of points in the PDE input is", len(inp_pde))
     return inp_pde
 
