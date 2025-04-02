@@ -186,9 +186,18 @@ def boundary_loss(model,x,t,t_surr,t_init):
     #         return t_surr
         
     u_pred = model(x,t)
-    bc = torch.where(t == 0, t_init, t_surr)
+    # bc = torch.where(t == 0, t_init, t_surr)
+    def bc_func(x,t,t_surr,t_init):
+        if t == 0:
+            return bc = t_init
+        elif t >0 and t < 0.01:
+            return bc =(t_surr -t_init)/(0.01)*t
+        elif t > 0.01:
+            return bc = t_surr
     
-    bc_mean =  torch.mean(torch.square(u_pred-bc))
+    bc_cal = bc_func(x,t,t_surr,t_init)
+     
+    bc_mean =  torch.mean(torch.square(u_pred-bc_cal))
     # bc_mean = nn.MSELoss()(u_pred,bc)
    
     return bc_mean
