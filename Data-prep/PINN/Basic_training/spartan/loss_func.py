@@ -179,26 +179,17 @@ def boundary_loss(model,x,t,t_surr,t_init):
     
     # t_surr_t = t_surr.clone().detach().to(device)
     
-    def bc_func(x,t,t_surr,t_init):
-        if (t == 0).any():
-            return t_init
-        if t>0 and t<0.001:
-            return t_init + (t_surr-t_init)*t/0.001
-        elif t>=0.001 and t<0.999:
-            return t_surr
+    
         
     u_pred = model(x,t)
     # bc = torch.where(t == 0, t_init, t_surr)
     def bc_func(x,t,t_surr,t_init):
-        if t == 0:
-            bc = t_init
-            return bc
-        elif t >0 and t < 0.01:
-            bc =(t_surr -t_init)/(0.01)*t
-            return bc
-        elif t > 0.01:
-            bc = t_surr
-            return bc
+        bc = torch.where(t == 0, t_init, t_surr)
+        
+        bc = torch.where(torch.logical_and(t > 0 , t < 0.01), (t_surr - t_init)/(0.01)*t, bc)
+        
+        bc = torch.where(t > 0.01, t_surr, bc)
+        return bc
     
     bc_cal = bc_func(x,t,t_surr,t_init)
      

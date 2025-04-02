@@ -78,16 +78,21 @@ def training_loop(epochs, model, \
             if batch is None or batch_pde is None or batch_init is None or batch_left is None or batch_right is None:
                 continue  # Skip this iteration
             # Extract inputs from each batch
-            inputs = torch.tensor(batch[0]).to(device)  # Move inputs to GPU
-            inputs_pde = torch.tensor(batch_pde[0]).to(device)  # Move inputs to GPU
-            inputs_init = torch.tensor(batch_init[0]).to(device)  # Move inputs to GPU
-            inputs_left = torch.tensor(batch_left[0]).to(device)  # Move inputs to GPU
-            inputs_right = torch.tensor(batch_right[0]).to(device)  # Move inputs to GPU
+            inputs,temp_inp = batch  # Move inputs to GPU
+            inputs_pde = batch_pde  # Move inputs to GPU
+            inputs_init = batch_init  # Move inputs to GPU
+            inputs_left = batch_left # Move inputs to GPU
+            inputs_right = batch_right  # Move inputs to GPU
             
-            temp_inp = torch.tensor(batch[1]).to(device)  # Move inputs to GPU
+            # Move all tensors to the GPU
+            inputs = inputs.to(device)
+            temp_inp = temp_inp.to(device)
+            inputs_pde = inputs_pde.to(device)
+            inputs_init = inputs_init.to(device)
+            inputs_left = inputs_left.to(device)
+            inputs_right = inputs_right.to(device)
          
-
-            
+           
             
             
             optimizer.zero_grad()  # Zero the gradients before backpropagation
@@ -164,11 +169,19 @@ def training_loop(epochs, model, \
             
             if batch is None or batch_pde is None or batch_init is None or batch_left is None or batch_right is None:
                continue  # Skip this iteration
-            inputs, temp_inp = batch
-            inputs_pde = batch_pde
-            inputs_init = batch_init
-            inputs_left = batch_left
-            inputs_right = batch_right
+            inputs,temp_inp = batch  # Move inputs to GPU
+            inputs_pde = batch_pde  # Move inputs to GPU
+            inputs_init = batch_init  # Move inputs to GPU
+            inputs_left = batch_left # Move inputs to GPU
+            inputs_right = batch_right  # Move inputs to GPU
+            
+            # Move all tensors to the GPU
+            inputs = inputs.to(device)
+            temp_inp = temp_inp.to(device)
+            inputs_pde = inputs_pde.to(device)
+            inputs_init = inputs_init.to(device)
+            inputs_left = inputs_left.to(device)
+            inputs_right = inputs_right.to(device)
             
             
             

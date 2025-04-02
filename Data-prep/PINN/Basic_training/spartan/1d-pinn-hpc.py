@@ -52,7 +52,7 @@ heat_data = HT_sim(length, time_end, numpoints,  t_surr,temp_init)
 alpha = heat_data.alpha_l
 tempfield = heat_data.datagen()
 
-heat_data.plot_temp(25)
+# heat_data.plot_temp(25)
 dt = heat_data.dt
 dx = heat_data.dx
 # print(heat_data.dx)
@@ -310,7 +310,7 @@ learning_rate = 0.005
 hidden_layers = 5
 
 
-epochs_1 = 2000
+epochs_1 = 5000
 epochs_2 = 10
 
 model = PINN(input_size, hidden_size, output_size,hidden_layers).to(device)

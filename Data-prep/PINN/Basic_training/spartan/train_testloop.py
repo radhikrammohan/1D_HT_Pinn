@@ -96,7 +96,7 @@ def training_loop(epochs, model, \
             # Forward pass for data prediction
             u_pred_d = model(inputs[:, 0].unsqueeze(1), inputs[:, 1].unsqueeze(1))
             data_loss = loss_fn_data(u_pred_d, temp_inp)  # Data loss
-            
+            print(inputs_init.shape)
             # Forward pass for initial condition prediction
             u_initl = model(inputs_init[:, 0].unsqueeze(1), inputs_init[:, 1].unsqueeze(1))
             init_loss = ic_loss(model,inputs_init[:, 0].unsqueeze(1), inputs_init[:, 1].unsqueeze(1),temp_init_t)  # Initial condition loss
@@ -165,14 +165,17 @@ def training_loop(epochs, model, \
             
             if batch is None or batch_pde is None or batch_init is None or batch_left is None or batch_right is None:
                continue  # Skip this iteration
-            inputs, temp_inp = batch
-            inputs_pde = batch_pde
-            inputs_init = batch_init
-            inputs_left = batch_left
-            inputs_right = batch_right
+            
+            inputs = torch.tensor(batch[0]).to(device)  # Move inputs to GPU
+            inputs_pde = torch.tensor(batch_pde[0]).to(device)  # Move inputs to GPU
+            inputs_init = torch.tensor(batch_init[0]).to(device)  # Move inputs to GPU
+            inputs_left = torch.tensor(batch_left[0]).to(device)  # Move inputs to GPU
+            inputs_right = torch.tensor(batch_right[0]).to(device)  # Move inputs to GPU
+            
+            temp_inp = torch.tensor(batch[1]).to(device)  # Move inputs to GPU
             
             
-            
+            print(inputs_init.shape)
             
             u_pred = model(inputs[:, 0].unsqueeze(1), inputs[:, 1].unsqueeze(1))
             data_loss_t = loss_fn_data(u_pred, temp_inp)
