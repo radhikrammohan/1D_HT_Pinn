@@ -2,15 +2,19 @@
 #SBATCH --job-name=test-job    # Name of the job
 #SBATCH --output=/home/rrammohan/jobs/1D_HT_Pinn/Data-prep/PINN/Basic_training/spartan/output_files/job_%j/output_%j.txt        # Output file for logs
 #SBATCH --error=/home/rrammohan/jobs/1D_HT_Pinn/Data-prep/PINN/Basic_training/spartan/output_files/job_%j/error_%j.txt          # Error log file
-#SBATCH --partition=gpu-a100
+#SBATCH --partition=gpu-h100 
 #SBATCH --gres=gpu:2
 
 #SBATCH --ntasks=1                 # Number of tasks (like chefs working on a dish)
 #SBATCH --cpus-per-task=2          # Number of CPU cores per task (like each chef’s hands)
 #SBATCH --mem=10G                   # Memory needed for the job (like ingredients required)
-#SBATCH --time=0-08:00:00            # Max runtime (like how long your table is reserved)
+#SBATCH --time=2-00:00:00            # Max runtime (like how long your table is reserved)
 
 #SBATCH --qos=feit
+
+
+# Define the timestamp format
+TIMESTAMP=$(date +%Y-%m-%d_%H-%M)
 
 # Load necessary modules
 module purge
@@ -31,3 +35,7 @@ echo "CUDA devices available: $(nvidia-smi)"
 
 # Run the Python script
 python 1d-pinn-hpc.py --job_id $SLURM_JOB_ID 
+
+# Rename the SLURM output file
+mv output_files/job_${SLURM_JOB_ID}/output_${SLURM_JOB_ID}.txt outputs/output_${SLURM_JOB_ID}_${TIMESTAMP}.txt
+mv output_files/job_${SLURM_JOB_ID}/error_${SLURM_JOB_ID}.txt outputs/error_${SLURM_JOB_ID}_${TIMESTAMP}.txt 

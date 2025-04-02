@@ -1,0 +1,10 @@
+
+Currently Loaded Modules:
+  1) Anaconda3/2024.02-1
+
+ 
+
+/home/rrammohan/.conda/envs/pytorch-env/lib/python3.12/site-packages/torch/autograd/graph.py:823: UserWarning: Attempting to run cuBLAS, but there was no current CUDA context! Attempting to set the primary context... (Triggered internally at /pytorch/aten/src/ATen/cuda/CublasHandlePool.cpp:180.)
+  return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+mv: cannot move 'output_files/job_7547380/output_7547380.txt' to 'outputs/output_7547380_2025-03-31_12-52.txt': No such file or directory
+mv: cannot move 'output_files/job_7547380/error_7547380.txt' to 'outputs/error_7547380_2025-03-31_12-52.txt': No such file or directory

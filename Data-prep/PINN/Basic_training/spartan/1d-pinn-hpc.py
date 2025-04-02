@@ -303,13 +303,21 @@ class PINN(nn.Module):
 
 # %%
 input_size = 2
+<<<<<<< HEAD
+hidden_size = 10 
+=======
 hidden_size = 20 
+>>>>>>> 8963f12cfc801709cc3f793720b5292ec06bdcd4
 output_size=1
 
 learning_rate = 0.005
-hidden_layers = 2
+hidden_layers = 5
 
+<<<<<<< HEAD
+epochs_1 = 2000
+=======
 epochs_1 = 10000
+>>>>>>> 8963f12cfc801709cc3f793720b5292ec06bdcd4
 epochs_2 = 10
 
 model = PINN(input_size, hidden_size, output_size,hidden_layers).to(device)

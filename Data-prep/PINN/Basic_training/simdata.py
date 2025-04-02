@@ -46,7 +46,7 @@ class HT_sim():
         self.alpha_l = self.k_l / (self.rho_l * self.cp_l)
         self.alpha_s = self.k_s / (self.rho_s*self.cp_s)
         self.alpha_m = self.k_m / (self.rho_m * self.cp_m)          #`Thermal diffusivity in mushy zone is taken as average of liquid and solid thermal diffusivity`
-
+        print(self.alpha_m, self.alpha_l, self.alpha_s)
         self.L_fusion = 389.0e3               # J/kg  # Latent heat of fusion of aluminum
         self.T_L = 574.4 +273.0                       #  K -Liquidus Temperature (615 c) AL 380
         self.T_S = 497.3 +273.0                     # K- Solidus Temperature (550 C)
@@ -61,7 +61,9 @@ class HT_sim():
                                                                    # die thickness in m
         # Calculate dx,dt, and step_coeff
         self.dx = self.dx_calc(self.length, self.num_points)
+        print("The spatial step is", self.dx)
         self.dt = self.dt_calc(self.dx, self.alpha_l, self.alpha_s, self.alpha_m)
+        print("The time step is", self.dt)
         self.step_coeff = self.step_coeff_calc(self.dt, self.dx)
         self.num_steps = round(self.time_end/self.dt)
 
@@ -120,8 +122,8 @@ class HT_sim():
         dx = self.dx
         plt.figure(figsize=(10, 6))
         plt.plot(time_ss, self.temp_history_1[:,idx], label='Midpoint Temperature')
-        plt.axhline(y=self.T_L, color='r', linestyle='--', label='Liquidus Temperature')
-        plt.axhline(y=self.T_S, color='g', linestyle='--', label='Solidus Temperature')
+        # plt.axhline(y=self.T_L, color='r', linestyle='--', label='Liquidus Temperature')
+        # plt.axhline(y=self.T_S, color='g', linestyle='--', label='Solidus Temperature')
         plt.xlabel('Time(s)')
         plt.ylabel('Temperature (K)')
         plt.title(f'Temperature Distribution Over Time at x = {idx*dx*1000:.2f} mm') 
