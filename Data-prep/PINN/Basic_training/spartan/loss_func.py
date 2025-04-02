@@ -191,11 +191,14 @@ def boundary_loss(model,x,t,t_surr,t_init):
     # bc = torch.where(t == 0, t_init, t_surr)
     def bc_func(x,t,t_surr,t_init):
         if t == 0:
-            return bc = t_init
+            bc = t_init
+            return bc
         elif t >0 and t < 0.01:
-            return bc =(t_surr -t_init)/(0.01)*t
+            bc =(t_surr -t_init)/(0.01)*t
+            return bc
         elif t > 0.01:
-            return bc = t_surr
+            bc = t_surr
+            return bc
     
     bc_cal = bc_func(x,t,t_surr,t_init)
      
