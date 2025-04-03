@@ -1,0 +1,41 @@
+
+Currently Loaded Modules:
+  1) Anaconda3/2024.02-1
+
+ 
+
+/home/rrammohan/.conda/envs/pytorch-env/lib/python3.12/site-packages/skopt/sampler/sobol.py:521: UserWarning: The balance properties of Sobol' points require n to be a power of 2. 0 points have been previously generated, then: n=0+20002=20002. 
+  warnings.warn(
+Traceback (most recent call last):
+  File "/home/rrammohan/jobs/1D_HT_Pinn/Data-prep/PINN/Basic_training/spartan/1d-pinn-hpc.py", line 337, in <module>
+    loss_train,loss_test,best_model = training_loop(epochs_1, model, loss_fn_data, \
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/rrammohan/jobs/1D_HT_Pinn/Data-prep/PINN/Basic_training/spartan/train_testloop.py", line 70, in training_loop
+    for (batch, batch_pde, batch_init, batch_left, batch_right) in \
+  File "/home/rrammohan/.conda/envs/pytorch-env/lib/python3.12/site-packages/torch/utils/data/dataloader.py", line 708, in __next__
+    data = self._next_data()
+           ^^^^^^^^^^^^^^^^^
+  File "/home/rrammohan/.conda/envs/pytorch-env/lib/python3.12/site-packages/torch/utils/data/dataloader.py", line 1480, in _next_data
+    return self._process_data(data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/rrammohan/.conda/envs/pytorch-env/lib/python3.12/site-packages/torch/utils/data/dataloader.py", line 1505, in _process_data
+    data.reraise()
+  File "/home/rrammohan/.conda/envs/pytorch-env/lib/python3.12/site-packages/torch/_utils.py", line 733, in reraise
+    raise exception
+RuntimeError: Caught RuntimeError in DataLoader worker process 0.
+Original Traceback (most recent call last):
+  File "/home/rrammohan/.conda/envs/pytorch-env/lib/python3.12/site-packages/torch/utils/data/_utils/worker.py", line 349, in _worker_loop
+    data = fetcher.fetch(index)  # type: ignore[possibly-undefined]
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/rrammohan/.conda/envs/pytorch-env/lib/python3.12/site-packages/torch/utils/data/_utils/fetch.py", line 52, in fetch
+    data = [self.dataset[idx] for idx in possibly_batched_index]
+            ~~~~~~~~~~~~^^^^^
+  File "/home/rrammohan/jobs/1D_HT_Pinn/Data-prep/PINN/Basic_training/spartan/1d-pinn-hpc.py", line 197, in __getitem__
+    return self.inputs[index],self.outputs[index]
+           ~~~~~~~~~~~^^^^^^^
+RuntimeError: CUDA error: initialization error
+CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
+
+
