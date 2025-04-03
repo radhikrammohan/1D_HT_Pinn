@@ -97,7 +97,7 @@ def training_loop(epochs, model, \
             # Forward pass for data prediction
             u_pred_d = model(inputs[:, 0].unsqueeze(1), inputs[:, 1].unsqueeze(1))
             data_loss = loss_fn_data(u_pred_d, temp_inp)  # Data loss
-            print(inputs_init.shape)
+           
             # Forward pass for initial condition prediction
             u_initl = model(inputs_init[:, 0].unsqueeze(1), inputs_init[:, 1].unsqueeze(1))
             init_loss = ic_loss(model,inputs_init[:, 0].unsqueeze(1), inputs_init[:, 1].unsqueeze(1),temp_init_t)  # Initial condition loss

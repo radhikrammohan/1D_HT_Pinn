@@ -303,7 +303,7 @@ class PINN(nn.Module):
 
 # %%
 input_size = 2
-hidden_size = 20 
+hidden_size = 30 
 output_size=1
 
 learning_rate = 0.005
