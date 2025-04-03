@@ -78,18 +78,19 @@ def training_loop(epochs, model, \
             if batch is None or batch_pde is None or batch_init is None or batch_left is None or batch_right is None:
                 continue  # Skip this iteration
             # Extract inputs from each batch
-            inputs = torch.tensor(batch[0]).to(device)  # Move inputs to GPU
-            inputs_pde = torch.tensor(batch_pde[0]).to(device)  # Move inputs to GPU
-            inputs_init = torch.tensor(batch_init[0]).to(device)  # Move inputs to GPU
-            inputs_left = torch.tensor(batch_left[0]).to(device)  # Move inputs to GPU
-            inputs_right = torch.tensor(batch_right[0]).to(device)  # Move inputs to GPU
+            inputs,temp_inp = batch  # Move inputs to GPU
+            inputs_pde = batch_pde  # Move inputs to GPU
+            inputs_init = batch_init  # Move inputs to GPU
+            inputs_left = batch_left # Move inputs to GPU
+            inputs_right = batch_right  # Move inputs to GPU
             
-            temp_inp = torch.tensor(batch[1]).to(device)  # Move inputs to GPU
-            
-            
-
-            
-            
+            # Move all tensors to the GPU
+            inputs = inputs.to(device)
+            temp_inp = temp_inp.to(device)
+            inputs_pde = inputs_pde.to(device)
+            inputs_init = inputs_init.to(device)
+            inputs_left = inputs_left.to(device)
+            inputs_right = inputs_right.to(device)
             
             optimizer.zero_grad()  # Zero the gradients before backpropagation
             
@@ -117,7 +118,7 @@ def training_loop(epochs, model, \
             # Define weights for the different losses
             w0, w1, w2, w3 = 1, 1, 1,1
             # Calculate total loss
-            loss = w0 * data_loss + w1 * phy_loss + w2 * init_loss + w3 * bc_loss
+            loss =  w1 * phy_loss + w2 * init_loss + w3 * bc_loss
             # loss =  w1 * phy_loss + w2 * init_loss + w3 * bc_loss
             # Backpropagation
             loss.backward(retain_graph=True)  # Backpropagate the gradients
@@ -166,16 +167,21 @@ def training_loop(epochs, model, \
             if batch is None or batch_pde is None or batch_init is None or batch_left is None or batch_right is None:
                continue  # Skip this iteration
             
-            inputs = torch.tensor(batch[0]).to(device)  # Move inputs to GPU
-            inputs_pde = torch.tensor(batch_pde[0]).to(device)  # Move inputs to GPU
-            inputs_init = torch.tensor(batch_init[0]).to(device)  # Move inputs to GPU
-            inputs_left = torch.tensor(batch_left[0]).to(device)  # Move inputs to GPU
-            inputs_right = torch.tensor(batch_right[0]).to(device)  # Move inputs to GPU
+            inputs,temp_inp = batch  # Move inputs to GPU
+            inputs_pde = batch_pde  # Move inputs to GPU
+            inputs_init = batch_init  # Move inputs to GPU
+            inputs_left = batch_left # Move inputs to GPU
+            inputs_right = batch_right  # Move inputs to GPU
             
-            temp_inp = torch.tensor(batch[1]).to(device)  # Move inputs to GPU
+            # Move all tensors to the GPU
+            inputs = inputs.to(device)
+            temp_inp = temp_inp.to(device)
+            inputs_pde = inputs_pde.to(device)
+            inputs_init = inputs_init.to(device)
+            inputs_left = inputs_left.to(device)
+            inputs_right = inputs_right.to(device)
             
-            
-            print(inputs_init.shape)
+          
             
             u_pred = model(inputs[:, 0].unsqueeze(1), inputs[:, 1].unsqueeze(1))
             data_loss_t = loss_fn_data(u_pred, temp_inp)
@@ -193,7 +199,7 @@ def training_loop(epochs, model, \
             phy_loss_t = pde_loss(model, inputs_pde[:, 0].unsqueeze(1), inputs_pde[:, 1].unsqueeze(1), T_st, T_lt)
             
             w0, w1, w2, w3 = 1,1,1,1
-            loss_t = w0 * data_loss_t + w1 * phy_loss_t + w2 * init_loss_t + w3 * bc_loss_t
+            loss_t =  w1 * phy_loss_t + w2 * init_loss_t + w3 * bc_loss_t
             # loss_t = w1 * phy_loss_t + w2 * init_loss_t + w3 * bc_loss_t
             
             test_loss += loss_t.item()
