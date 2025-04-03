@@ -86,8 +86,8 @@ num_steps = tempfield.shape[0]
 numpoints = tempfield.shape[1] 
 
 pde_pts= 20000
-ic_pts = 10000
-bc_pts = 10000
+ic_pts = 20000
+bc_pts = 20000
 
 x_c = 1/length
 t_c = (alpha/(length**2))

@@ -35,6 +35,4 @@ echo "CUDA devices available: $(nvidia-smi)"
 # Run the Python script
 python 1d-pinn-hpc.py --job_id $SLURM_JOB_ID 
 
-# Rename the SLURM output file
-mv output_files/job_${SLURM_JOB_ID}/output_${SLURM_JOB_ID}.txt outputs/output_${SLURM_JOB_ID}_${TIMESTAMP}.txt
-mv output_files/job_${SLURM_JOB_ID}/error_${SLURM_JOB_ID}.txt outputs/error_${SLURM_JOB_ID}_${TIMESTAMP}.txt 
+
