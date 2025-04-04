@@ -232,21 +232,21 @@ def icinp(length, icpts,scl="True"):
     inp_ic = np.column_stack((x, t))
     return inp_ic
 
-def bcinp(length, time_end, bcpts, delt, scl="True"):
+def bcinp(length, time_end, bcpts, delt):
     # module to create boundary condition inputs
     x_l = np.zeros(bcpts)
     x_r = np.ones(bcpts)*length
 
-    t = np.linspace(0+delt, time_end, bcpts)
+    t = np.linspace(delt, time_end, bcpts)
     print("The number of points in the left boundary condition is", len(x_l))
     print("The number of points in the right boundary condition is", len(x_r))
 
-    if scl == "True":
-        x_l = scaler(x_l, 0, length)
-        x_r = scaler(x_r, 0, length)
-        t = scaler(t, 0, time_end)
-    else:
-        print("scaling not initiated")
+    # if scl == "True":
+    #     x_l = scaler(x_l, 0, length)
+    #     x_r = scaler(x_r, 0, length)
+    #     t = scaler(t, 0, time_end)
+    # else:
+    #     print("scaling not initiated")
     inp_bcl = np.column_stack((x_l, t))
     inp_bcr = np.column_stack((x_r, t))
     return inp_bcl, inp_bcr

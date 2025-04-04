@@ -144,18 +144,22 @@ def training_loop(epochs, model, \
             init_loss_acc += init_loss.item()
             bc_loss_acc += bc_loss.item()
         
-          
+        train_loss_batch = train_loss / len(train_dataloader)  # Average training loss for this batch
+        data_loss_batch = data_loss_b / len(train_dataloader)  # Average data loss for this batch
+        phy_loss_batch = phy_loss_acc / len(train_loader_pde)
+        init_loss_batch = init_loss_acc / len(train_loader_init)
+        bc_loss_batch = bc_loss_acc / len(train_loader_bc_l) 
         
         # Append losses to respective lists for tracking
         if len(train_dataloader) > 0:
-            train_losses.append(train_loss / len(train_dataloader))
-            data_losses.append(data_loss_b / len(train_dataloader))
+            train_losses.append(train_loss_batch)
+            data_losses.append(data_loss_batch)
         if len(train_loader_pde) > 0:
-            pde_losses.append(phy_loss_acc / len(train_loader_pde))
+            pde_losses.append(phy_loss_batch)
         if len(train_loader_init) > 0:
-            ic_losses.append(init_loss_acc / len(train_loader_init))
+            ic_losses.append(init_loss_batch)
         if len(train_loader_bc_l) > 0:
-            bc_losses.append(bc_loss_acc / len(train_loader_bc_l))
+            bc_losses.append(bc_loss_batch)
         
        
 
@@ -204,23 +208,30 @@ def training_loop(epochs, model, \
             w0, w1, w2, w3 = 1,1,1,1
             loss_t =  w1 * phy_loss_t + w2 * init_loss_t + w3 * bc_loss_t
             # loss_t = w1 * phy_loss_t + w2 * init_loss_t + w3 * bc_loss_t
-            
+            print(f"loss_t: {loss_t} = w1 * {phy_loss_t} + w2 * {init_loss_t} + w3 * {bc_loss_t}")
             test_loss += loss_t.item()
             data_loss_t += data_loss_t.item()
             phy_loss_t += phy_loss_t.item()
             ic_loss_t += init_loss_t.item()
             bc_l_loss_t += bc_loss_t.item()
         
+        test_loss_batch = test_loss / len(test_dataloader)  # Average test loss for this batch
+        data_loss_batch_t = data_loss_t / len(test_dataloader)
+        phy_loss_batch_t = phy_loss_t / len(pde_test_dataloader)
+        init_loss_batch_t = ic_loss_t / len(ic_test_dataloader)
+        bc_loss_batch_t = bc_loss_t / len(test_bc_l_dataloader)
+        
+        
         # Normalize the test loss by the number of test batches
         if len(test_dataloader) > 0:
-            test_losses.append(test_loss / len(test_dataloader))
-            data_loss_test.append(data_loss_t / len(test_dataloader))
+            test_losses.append(test_loss_batch)
+            data_loss_test.append(data_loss_batch_t)
         if len(pde_test_dataloader) > 0:
-            pde_loss_test.append(phy_loss_t / len(pde_test_dataloader))
+            pde_loss_test.append(phy_loss_batch_t)
         if len(ic_test_dataloader) > 0:
-            ic_loss_test.append(ic_loss_t / len(ic_test_dataloader))
+            ic_loss_test.append(init_loss_batch_t)
         if len(test_bc_l_dataloader) > 0:
-            bc_loss_test.append(bc_loss_t / len(test_bc_l_dataloader))
+            bc_loss_test.append(bc_l_loss_t)
         
 
          # Saving the best model in the training loop
@@ -247,22 +258,22 @@ def training_loop(epochs, model, \
         if epoch % 10 == 0:
             print(f" ")
             print(f"--"*50)
-            print(f"| Epoch {epoch+1},            | Training-Loss {train_loss:.4e},| Test-Loss {test_loss:.4e}   |")
+            print(f"| Epoch {epoch+1},            | Training-Loss {train_loss_batch:.4e},| Test-Loss {test_loss_batch:.4e}   |")
             print(f"--"*50)
-            print(f"| Data-loss {data_loss:.4e},| pde-loss {phy_loss_acc:.4e},| initc-loss {init_loss:.4e},|bc_loss {bc_loss:.4e}|") 
+            print(f"| Data-loss {data_loss_batch:.4e},| pde-loss {phy_loss_batch:.4e},| initc-loss {init_loss_batch:.4e},|bc_loss {bc_loss_batch:.4e}|") 
             print(f"--"*50)
-            print(f"| Data-loss-test {data_loss_t:.4e},| pde-loss-test {phy_loss_t:.4e},| initc-loss-test {init_loss_t:.4e},|bc_loss-test {bc_loss_t:.4e}|")
+            print(f"| Data-loss-test {data_loss_batch_t:.4e},| pde-loss-test {phy_loss_batch_t:.4e},| initc-loss-test {init_loss_batch_t:.4e},|bc_loss-test {bc_loss_batch_t:.4e}|")
             print(f"--"*50)
             print(f" ")
 
         if epoch == (epochs-1):
             print(f" ")
             print(f"--"*50)
-            print(f"| Epoch {epoch+1},            | Training-Loss {train_loss:.4e},| Test-Loss {test_loss:.4e}   |")
+            print(f"| Epoch {epoch+1},            | Training-Loss {train_loss_batch:.4e},| Test-Loss {test_loss_batch:.4e}   |")
             print(f"--"*50)
-            print(f"| Data-loss {data_loss:.4e},| pde-loss {phy_loss_acc:.4e},| initc-loss {init_loss:.4e},|bc_loss {bc_loss:.4e}|") 
+            print(f"| Data-loss {data_loss_batch:.4e},| pde-loss {phy_loss_batch:.4e},| initc-loss {init_loss_batch:.4e},|bc_loss {bc_loss_batch:.4e}|") 
             print(f"--"*50)
-            print(f"| Data-loss-test {data_loss_t:.4e},| pde-loss-test {phy_loss_t:.4e},| initc-loss-test {init_loss_t:.4e},|bc_loss-test {bc_loss_t:.4e}|")
+            print(f"| Data-loss-test {data_loss_batch_t:.4e},| pde-loss-test {phy_loss_batch_t:.4e},| initc-loss-test {init_loss_batch_t:.4e},|bc_loss-test {bc_loss_batch_t:.4e}|")
             print(f"--"*50)
             print(f" ")
     # Return all collected losses for further analysis
