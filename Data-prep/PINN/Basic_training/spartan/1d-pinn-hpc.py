@@ -306,11 +306,11 @@ input_size = 2
 hidden_size = 20 
 output_size=1
 
-learning_rate = 0.09
-hidden_layers = 8
+learning_rate = 0.004
+hidden_layers = 5
 
 
-epochs_1 = 2000
+epochs_1 = 3000
 epochs_2 = 10
 
 model = PINN(input_size, hidden_size, output_size,hidden_layers).to(device)
