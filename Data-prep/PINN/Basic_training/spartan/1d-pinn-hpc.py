@@ -248,18 +248,18 @@ rand_smpl_ic_test = RandomSampler(inp_ic_dataset_test,replacement=False, num_sam
 rand_smpl_bcl_test = RandomSampler(inp_bcl_dataset_test,replacement=False, num_samples=10000) # random sampler for bc left residuals
 rand_smpl_bcr_test = RandomSampler(inp_bcr_dataset_test,replacement=False, num_samples=10000) # random sampler for bc right residuals
 
-train_loader = DataLoader(inp_dataset, batch_size=256, sampler=rand_smpl) # training data loader
-pde_loader = DataLoader(inp_pde_dataset, batch_size=256, sampler=rand_smpl_pde) # pde residual data loader training
-ic_loader = DataLoader(inp_ic_dataset, batch_size=256, sampler=rand_smpl_ic) # ic residual data loader training
-bcl_loader = DataLoader(inp_bcl_dataset, batch_size=256, sampler=rand_smpl_bcl) # bc left residual data loader training
-bcr_loader = DataLoader(inp_bcr_dataset, batch_size=256, sampler=rand_smpl_bcr) # bc right residual data loader training
+train_loader = DataLoader(inp_dataset, batch_size=256, shuffle=True) # training data loader
+pde_loader = DataLoader(inp_pde_dataset, batch_size=256, shuffle=True) # pde residual data loader training
+ic_loader = DataLoader(inp_ic_dataset, batch_size=256, shuffle=True) # ic residual data loader training
+bcl_loader = DataLoader(inp_bcl_dataset, batch_size=256, shuffle=True) # bc left residual data loader training
+bcr_loader = DataLoader(inp_bcr_dataset, batch_size=256, shuffle=True) # bc right residual data loader training
 
 
-test_loader = DataLoader(inp_dataset_test, batch_size=256, sampler=rand_smpl_test) # testing data loader
-pde_loader_test = DataLoader(inp_pde_dataset_test, batch_size=256, sampler=rand_smpl_pde_test)
-ic_loader_test = DataLoader(inp_ic_dataset_test, batch_size=256, sampler=rand_smpl_ic_test)
-bcl_loader_test = DataLoader(inp_bcl_dataset_test, batch_size=256, sampler=rand_smpl_bcl_test)
-bcr_loader_test = DataLoader(inp_bcr_dataset_test, batch_size=256, sampler=rand_smpl_bcr_test)
+test_loader = DataLoader(inp_dataset_test, batch_size=256, shuffle=True) # testing data loader
+pde_loader_test = DataLoader(inp_pde_dataset_test, batch_size=256, shuffle=True)
+ic_loader_test = DataLoader(inp_ic_dataset_test, batch_size=256, shuffle=True)
+bcl_loader_test = DataLoader(inp_bcl_dataset_test, batch_size=256, shuffle=True)
+bcr_loader_test = DataLoader(inp_bcr_dataset_test, batch_size=256, shuffle=True)
 
 
 
