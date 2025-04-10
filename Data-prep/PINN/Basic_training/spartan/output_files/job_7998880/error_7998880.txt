@@ -1,0 +1,10 @@
+
+Currently Loaded Modules:
+  1) Anaconda3/2024.02-1
+
+ 
+
+/home/rrammohan/.conda/envs/pytorch-env/lib/python3.12/site-packages/skopt/sampler/sobol.py:521: UserWarning: The balance properties of Sobol' points require n to be a power of 2. 0 points have been previously generated, then: n=0+20002=20002. 
+  warnings.warn(
+/home/rrammohan/.conda/envs/pytorch-env/lib/python3.12/site-packages/torch/autograd/graph.py:823: UserWarning: Attempting to run cuBLAS, but there was no current CUDA context! Attempting to set the primary context... (Triggered internally at /pytorch/aten/src/ATen/cuda/CublasHandlePool.cpp:180.)
+  return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
